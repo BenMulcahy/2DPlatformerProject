@@ -1,0 +1,3 @@
+<ListOfTaskListEntry>
+  <TaskListEntry file="" description="BUG - Doesnt reset wait so can cuase issues with ground check with long Ctimers - Solution: Create custom interupptable WaitForSeconds that bails out if grounded?" priority="Low" />
+</ListOfTaskListEntry>
