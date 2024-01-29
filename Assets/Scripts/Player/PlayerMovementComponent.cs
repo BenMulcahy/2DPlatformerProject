@@ -3,6 +3,20 @@ using UnityEngine;
 
 public class PlayerMovementComponent : MonoBehaviour
 {
+    //TODO: Add Walljumps
+
+    #region Events and Delegates
+    public delegate void OnPlayerLand();
+    public static event OnPlayerLand onPlayerLand;
+
+    public delegate void OnPlayerJump();
+    public static event OnPlayerJump onPlayerJump;
+
+    public delegate void OnPlayerMove(Vector2 playerVelocity);
+    public static event OnPlayerMove onPlayerMove;
+    #endregion
+
+
     #region Variables
     public Rigidbody2D RB { get; private set; }
     public bool bIsFacingRight { get; private set;}
@@ -61,6 +75,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         StartCoroutine(GroundCheck());
         RB.gravityScale = _defaultGravityScale;
+        bIsFacingRight = true;
     }
 
     private void FixedUpdate()
@@ -90,6 +105,8 @@ public class PlayerMovementComponent : MonoBehaviour
         float movementVal = (targetSpeed - RB.velocity.x) * accelRate;
         RB.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
 
+        onPlayerMove?.Invoke(RB.velocity);
+
         //Set Right Facing
         if (RB.velocity.x < 0) bIsFacingRight = false; else if (RB.velocity.x > 0) bIsFacingRight = true;
     }
@@ -110,8 +127,10 @@ public class PlayerMovementComponent : MonoBehaviour
         float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
         RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
+        onPlayerJump?.Invoke();
+
         //Start Jump Timer
-        _bShortHop = false; //ensure bshorthop is flase
+        _bShortHop = false; //ensure bshorthop is false
         StartCoroutine(JumpTimer());
     }
 
@@ -121,7 +140,6 @@ public class PlayerMovementComponent : MonoBehaviour
         StopCoroutine(JumpTimer());
         if (_jumpPressedTimer < _jumpFullPressWindowTime)
         {
-            //Debug.Log("Jump Cancelled before jump time fulfilled");
             //Apply downward force on player to push back down
             _bShortHop = true;
         }
@@ -158,7 +176,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
     private void OnLand()
     {
-        Debug.Log("Player Landed!");
+        onPlayerLand?.Invoke();
 
         //Reset Values on landing
         bIsOnFloor = true;
@@ -176,9 +194,9 @@ public class PlayerMovementComponent : MonoBehaviour
         Vector2 lPos = playerBounds.min;
 
         //Debug.DrawLine(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.3f, Color.blue);
-        if (Physics2D.Linecast(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.2f, _groundCheckMask))
+        if (Physics2D.Linecast(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.25f, _groundCheckMask))
         {
-            OnLand();
+            if(!bIsOnFloor) OnLand();
             return true;
         }
         else return false;

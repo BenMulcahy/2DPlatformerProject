@@ -460,7 +460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b024657c592304700bd13bd68fafe0d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _jumpInputBuffer: 0.02
+  _jumpInputBuffer: 0.01
 --- !u!114 &763067708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -627,7 +627,7 @@ MonoBehaviour:
   m_LookAt: {fileID: 763067709}
   m_Follow: {fileID: 763067709}
   m_Lens:
-    FieldOfView: 80
+    FieldOfView: 100
     OrthographicSize: 10
     NearClipPlane: 0.1
     FarClipPlane: 5000
@@ -670,6 +670,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1459134423}
   - component: {fileID: 1459134424}
+  - component: {fileID: 1459134425}
   m_Layer: 0
   m_Name: PlayerVisuals
   m_TagString: Untagged
@@ -746,6 +747,21 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1459134425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1459134422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a4b2f40216a94326af534a7e4dc66f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _squashScalePivotPoint: {x: 0, y: -0.95}
+  _maxSquash: {x: 1.33, y: 0.475}
+  _squashDuration: 0.1
 --- !u!1 &1830583668
 GameObject:
   m_ObjectHideFlags: 0
@@ -1024,7 +1040,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 80
+  field of view: 100
   orthographic: 0
   orthographic size: 10
   m_Depth: 0

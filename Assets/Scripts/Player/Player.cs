@@ -18,17 +18,18 @@ public class Player : MonoBehaviour
         else Destroy(this);
 
         playerMovement = GetComponent<PlayerMovementComponent>();
-        SetupInputs();
 
     }
 
     private void OnEnable()
     {
+        SetupInputs(true);
         PlayerInputActions.Enable();
     }
 
     private void OnDisable()
     {
+        SetupInputs(false);
         PlayerInputActions.Disable();
     }
 
@@ -40,20 +41,38 @@ public class Player : MonoBehaviour
     //All inputs processed here and passed to appropriate component
     #region Input Management
 
-    void SetupInputs()
+    void SetupInputs(bool enabled)
     {
-        PlayerInputActions = new IA_Default(); //Create input action mapping
+        if(PlayerInputActions == null) PlayerInputActions = new IA_Default(); //Create input action mapping
 
-        //Move
-        PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
+        if (enabled)
+        {
+            //Move
+            PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
 
-        //Jump
-        PlayerInputActions.Gameplay.Jump.performed += OnJumpInput;
-        PlayerInputActions.Gameplay.Jump.canceled += OnJumpCancelled;
+            //Jump
+            PlayerInputActions.Gameplay.Jump.performed += OnJumpInput;
+            PlayerInputActions.Gameplay.Jump.canceled += OnJumpCancelled;
 
-        //Sprinting
-        PlayerInputActions.Gameplay.Sprint.performed += OnSprintInput;
-        PlayerInputActions.Gameplay.Sprint.canceled += OnSprintInputCancel;
+            //Sprinting
+            PlayerInputActions.Gameplay.Sprint.performed += OnSprintInput;
+            PlayerInputActions.Gameplay.Sprint.canceled += OnSprintInputCancel;
+        }
+
+        if (!enabled)
+        {
+            //Move
+            PlayerInputActions.Gameplay.Movement.performed -= OnMovementInput;
+
+            //Jump
+            PlayerInputActions.Gameplay.Jump.performed -= OnJumpInput;
+            PlayerInputActions.Gameplay.Jump.canceled -= OnJumpCancelled;
+
+            //Sprinting
+            PlayerInputActions.Gameplay.Sprint.performed -= OnSprintInput;
+            PlayerInputActions.Gameplay.Sprint.canceled -= OnSprintInputCancel;
+        }
+
     }
 
     /* SPRINTING - Start */
@@ -102,9 +121,15 @@ public class Player : MonoBehaviour
             }
             else
             {
-                if (playerMovement.bCanJump) playerMovement.StartJump();
-                _jumpInputBufferTimer = 0;
                 _bWantsToJump = false;
+                _jumpInputBufferTimer = 0;
+                if (playerMovement.bCanJump) playerMovement.StartJump();
+                if (!PlayerInputActions.Gameplay.Jump.IsPressed())
+                {
+                    //If short hop from buffer
+                    Debug.Log("Short hop buffer protect");
+                    playerMovement.StopJump();
+                }
             }
         }
     }
