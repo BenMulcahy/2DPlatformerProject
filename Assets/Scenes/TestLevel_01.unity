@@ -460,7 +460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b024657c592304700bd13bd68fafe0d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMovement: {fileID: 0}
+  _jumpInputBuffer: 0.02
 --- !u!114 &763067708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -478,14 +478,17 @@ MonoBehaviour:
   _accelleration: 2.5
   _decelleration: 4
   _jumpHeight: 4
+  maxJumps: 1
   _airAccellerationMod: 1.25
   _airDeccelleraionMod: 0.8
   _defaultGravityScale: 10
   _fallingGravityScale: 12
   _shortHopGravityScale: 18
-  _jumpFullPressWindowTime: 1
+  _jumpApexGravityModifier: 0.4
+  _jumpHangThreshold: 1.5
+  _maxFallSpeed: 40
+  _jumpFullPressWindowTime: 0.33
   _coyoteTime: 0.05
-  maxJumps: 1
   _groundCheckMask:
     serializedVersion: 2
     m_Bits: 8

@@ -1,49 +1,54 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovementComponent : MonoBehaviour
 {
+    #region Variables
     public Rigidbody2D RB { get; private set; }
     public bool bIsFacingRight { get; private set;}
+
 
     [Header("--- Walk/Run ---")][Space(5)]
     [SerializeField] float _walkSpeed = 15.0f;
     [SerializeField] float _sprintSpeed = 20.0f;
     public bool bIsSprinting { get; private set; }
     [Header("Accel/Deccel")]
-    [SerializeField] float _accelleration = 1.0f; //Time Aprx to get to full speed
-    [SerializeField] float _decelleration = 1.0f; //Time Aprx to stop
-
+    [SerializeField] float _accelleration = 2.5f; //Time Aprx to get to full speed
+    [SerializeField] float _decelleration = 4f; //Time Aprx to stop
 
     [Header("--- Jumping ---")][Space(5)]
-    [SerializeField] float _jumpHeight = 5.0f;
-    [SerializeField][Range(0.01f,2f)]float _airAccellerationMod = 1.2f; //multiplied to base accel
+    [SerializeField] float _jumpHeight = 4.0f;
+    public int maxJumps = 1;
+    [SerializeField][Range(0.01f,2f)]float _airAccellerationMod = 1.25f; //multiplied to base accel
     [SerializeField][Range(0.01f, 2f)] float _airDeccelleraionMod = 0.8f; //multipied to base deccel
     [Header("Gravity Scales")][Space(2)]
     [SerializeField] float _defaultGravityScale = 10.0f;
     [SerializeField] float _fallingGravityScale = 12.0f;
     [SerializeField] float _shortHopGravityScale = 18.0f;
+    [SerializeField][Range(0.1f,1f)] float _jumpApexGravityModifier = 0.4f;
+    [SerializeField] float _jumpHangThreshold = 1.5f;
+    [SerializeField] float _maxFallSpeed = 40.0f;
 
     [Header("Timers")][Space(2)]
-    [SerializeField] float _jumpFullPressWindowTime = 1.0f;
-    [SerializeField] float _coyoteTime = 0.25f;
+    [SerializeField] float _jumpFullPressWindowTime = 0.33f;
+    [SerializeField] float _coyoteTime = 0.05f;
     public bool bCanJump { get; private set; }
     public bool bIsOnFloor { get; private set; }
-    public int maxJumps = 1;
-    int JumpCounter;
+    public int JumpCounter { get; private set; }
     float _jumpPressedTimer;
     bool _bShortHop;
 
-
     [Header("GroundCheck")]
     [SerializeField] LayerMask _groundCheckMask;
+    #endregion
 
     private void OnValidate()
     {
         //Clamp Accel and Deccel values to under max speeds
         _accelleration = Mathf.Clamp(_accelleration, 0.01f, _walkSpeed);
         _decelleration = Mathf.Clamp(_decelleration, 0.01f, _walkSpeed);
+        if (_airAccellerationMod * _accelleration > _walkSpeed) _airAccellerationMod = _walkSpeed / _accelleration;
+        if (_airDeccelleraionMod * _decelleration > _walkSpeed) _airDeccelleraionMod = _walkSpeed / _decelleration;
     }
 
     private void Awake()
@@ -61,16 +66,7 @@ public class PlayerMovementComponent : MonoBehaviour
     private void FixedUpdate()
     {
         MovementX();
-
-        //Set Grav Scale
-        if(RB.velocity.y >= 0)
-        {
-            RB.gravityScale = _bShortHop ? _shortHopGravityScale : _defaultGravityScale;
-        }
-        else
-        {
-            RB.gravityScale = _fallingGravityScale;
-        }
+        UpdateGravityScale();
     }
 
     #region Walk/Running
@@ -104,10 +100,9 @@ public class PlayerMovementComponent : MonoBehaviour
     }
     #endregion
 
-    #region Jumping
+    #region Jumping/Falling
     public void StartJump()
     {
-        //TODO Held jump duration logic
         JumpCounter++;
         if (JumpCounter >= maxJumps) bCanJump = false;
 
@@ -126,7 +121,7 @@ public class PlayerMovementComponent : MonoBehaviour
         StopCoroutine(JumpTimer());
         if (_jumpPressedTimer < _jumpFullPressWindowTime)
         {
-            Debug.Log("Jump Cancelled before jump time fulfilled");
+            //Debug.Log("Jump Cancelled before jump time fulfilled");
             //Apply downward force on player to push back down
             _bShortHop = true;
         }
@@ -140,6 +135,24 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             _jumpPressedTimer += Time.deltaTime;
             yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private void UpdateGravityScale()
+    {
+        //Set Grav Scale
+        if (RB.velocity.y >= 0) //Travelling up
+        {
+            RB.gravityScale = _bShortHop ? _shortHopGravityScale : _defaultGravityScale;
+        }
+        else if(JumpCounter > 0 && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Reaching Apex
+        {
+            RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
+        }
+        else
+        {
+            RB.gravityScale = _fallingGravityScale; //Falling
+            RB.velocity = new Vector2(RB.velocity.x, Mathf.Max(RB.velocityY, -_maxFallSpeed)); //Clamp fall speed to max
         }
     }
 
