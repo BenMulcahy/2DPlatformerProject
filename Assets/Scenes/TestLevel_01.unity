@@ -216,7 +216,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f627fcde8e88a4e7483f79b29dc7cf4a, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -475,7 +475,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _walkSpeed: 15
   _sprintSpeed: 20
-  _jumpForce: 19
+  _accelleration: 2.5
+  _decelleration: 4
+  _jumpHeight: 4
+  _airAccellerationMod: 1.25
+  _airDeccelleraionMod: 0.8
+  _defaultGravityScale: 10
+  _fallingGravityScale: 12
+  _shortHopGravityScale: 18
+  _jumpFullPressWindowTime: 1
   _coyoteTime: 0.05
   maxJumps: 1
   _groundCheckMask:
@@ -548,8 +556,8 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 5
+  m_AngularDrag: 0
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -763,7 +771,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f627fcde8e88a4e7483f79b29dc7cf4a, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
-    public IA_Default InputActions { get; private set; }
+    public IA_Default PlayerInputActions { get; private set; }
 
     [HideInInspector] public PlayerMovementComponent playerMovement;
 
@@ -23,12 +23,12 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        InputActions.Enable();
+        PlayerInputActions.Enable();
     }
 
     private void OnDisable()
     {
-        InputActions.Disable();
+        PlayerInputActions.Disable();
     }
 
     //All inputs processed here and passed to appropriate component
@@ -36,17 +36,18 @@ public class Player : MonoBehaviour
 
     void SetupInputs()
     {
-        InputActions = new IA_Default(); //Create input action mapping
+        PlayerInputActions = new IA_Default(); //Create input action mapping
 
         //Move
-        InputActions.Gameplay.Movement.performed += OnMovementInput;
+        PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
 
         //Jump
-        InputActions.Gameplay.Jump.performed += OnJumpInput;
+        PlayerInputActions.Gameplay.Jump.performed += OnJumpInput;
+        PlayerInputActions.Gameplay.Jump.canceled += OnJumpCancelled;
 
         //Sprinting
-        InputActions.Gameplay.Sprint.performed += OnSprintInput;
-        InputActions.Gameplay.Sprint.canceled += OnSprintInputCancel;
+        PlayerInputActions.Gameplay.Sprint.performed += OnSprintInput;
+        PlayerInputActions.Gameplay.Sprint.canceled += OnSprintInputCancel;
     }
 
     /* SPRINTING - Start */
@@ -70,7 +71,13 @@ public class Player : MonoBehaviour
     /* JUMP  */
     private void OnJumpInput(InputAction.CallbackContext context)
     {
-        if(playerMovement.bCanJump) playerMovement.DoJump();
+        if(playerMovement.bCanJump) playerMovement.StartJump();
+    }
+
+    /* JUMP - Stop */
+    private void OnJumpCancelled(InputAction.CallbackContext context)
+    {
+        playerMovement.StopJump();
     }
     #endregion
 }

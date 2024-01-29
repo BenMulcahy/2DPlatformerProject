@@ -7,22 +7,44 @@ public class PlayerMovementComponent : MonoBehaviour
     public Rigidbody2D RB { get; private set; }
     public bool bIsFacingRight { get; private set;}
 
-    [Header("Movement | Walk/Run")]
+    [Header("--- Walk/Run ---")][Space(5)]
     [SerializeField] float _walkSpeed = 15.0f;
     [SerializeField] float _sprintSpeed = 20.0f;
     public bool bIsSprinting { get; private set; }
+    [Header("Accel/Deccel")]
+    [SerializeField] float _accelleration = 1.0f; //Time Aprx to get to full speed
+    [SerializeField] float _decelleration = 1.0f; //Time Aprx to stop
 
 
-    [Header("Movement | Jumping")]
-    [SerializeField] float _jumpForce = 5.0f;
+    [Header("--- Jumping ---")][Space(5)]
+    [SerializeField] float _jumpHeight = 5.0f;
+    [SerializeField][Range(0.01f,2f)]float _airAccellerationMod = 1.2f; //multiplied to base accel
+    [SerializeField][Range(0.01f, 2f)] float _airDeccelleraionMod = 0.8f; //multipied to base deccel
+    [Header("Gravity Scales")][Space(2)]
+    [SerializeField] float _defaultGravityScale = 10.0f;
+    [SerializeField] float _fallingGravityScale = 12.0f;
+    [SerializeField] float _shortHopGravityScale = 18.0f;
+
+    [Header("Timers")][Space(2)]
+    [SerializeField] float _jumpFullPressWindowTime = 1.0f;
     [SerializeField] float _coyoteTime = 0.25f;
     public bool bCanJump { get; private set; }
     public bool bIsOnFloor { get; private set; }
     public int maxJumps = 1;
     int JumpCounter;
+    float _jumpPressedTimer;
+    bool _bShortHop;
+
 
     [Header("GroundCheck")]
     [SerializeField] LayerMask _groundCheckMask;
+
+    private void OnValidate()
+    {
+        //Clamp Accel and Deccel values to under max speeds
+        _accelleration = Mathf.Clamp(_accelleration, 0.01f, _walkSpeed);
+        _decelleration = Mathf.Clamp(_decelleration, 0.01f, _walkSpeed);
+    }
 
     private void Awake()
     {
@@ -33,28 +55,92 @@ public class PlayerMovementComponent : MonoBehaviour
     private void Start()
     {
         StartCoroutine(GroundCheck());
+        RB.gravityScale = _defaultGravityScale;
     }
 
     private void FixedUpdate()
     {
-        RB.velocity = new Vector2(Player.Instance.InputActions.Gameplay.Movement.ReadValue<float>() * (bIsSprinting ? _sprintSpeed : _walkSpeed),RB.velocityY);
-        if (RB.velocity.x < 0) bIsFacingRight = false;
-        else if(RB.velocity.x > 0) bIsFacingRight = true; //Use elif to prevent setting bool when vel = 0
+        MovementX();
+
+        //Set Grav Scale
+        if(RB.velocity.y >= 0)
+        {
+            RB.gravityScale = _bShortHop ? _shortHopGravityScale : _defaultGravityScale;
+        }
+        else
+        {
+            RB.gravityScale = _fallingGravityScale;
+        }
     }
 
-    public void DoJump()
+    #region Walk/Running
+    private void MovementX()
     {
-        //TODO Held jump duration logic
+        /*    New Movement   */
+        float movementInput = Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>();
 
-        JumpCounter++;
-        if (JumpCounter >= maxJumps) bCanJump = false;
-        RB.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
-        //Debug.Log("Do Jump!");
+        //Calculate Accel and target speed
+        float targetSpeed = movementInput * (bIsSprinting ? _sprintSpeed : _walkSpeed);
+
+        //Calculate accel and deccel forces to apply
+        float accelForce = ((1 / Time.fixedDeltaTime) * _accelleration) / (bIsSprinting ? _sprintSpeed : _walkSpeed);
+        float deccelForce = ((1 / Time.fixedDeltaTime) * _decelleration) / (bIsSprinting ? _sprintSpeed : _walkSpeed);
+
+        //Calcualte accelleration rate
+        float accelRate;
+        if (bIsOnFloor) accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce : deccelForce;
+        else accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce * _airAccellerationMod : deccelForce * _airDeccelleraionMod;
+
+        float movementVal = (targetSpeed - RB.velocity.x) * accelRate;
+        RB.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
+
+        //Set Right Facing
+        if (RB.velocity.x < 0) bIsFacingRight = false; else if (RB.velocity.x > 0) bIsFacingRight = true;
     }
 
     public void SetSprinting(bool bSprinting)
     {
         bIsSprinting = bSprinting;
+    }
+    #endregion
+
+    #region Jumping
+    public void StartJump()
+    {
+        //TODO Held jump duration logic
+        JumpCounter++;
+        if (JumpCounter >= maxJumps) bCanJump = false;
+
+        //Jump
+        float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
+        RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+        //Start Jump Timer
+        _bShortHop = false; //ensure bshorthop is flase
+        StartCoroutine(JumpTimer());
+    }
+
+    public void StopJump()
+    {
+        //Stop Jump timer
+        StopCoroutine(JumpTimer());
+        if (_jumpPressedTimer < _jumpFullPressWindowTime)
+        {
+            Debug.Log("Jump Cancelled before jump time fulfilled");
+            //Apply downward force on player to push back down
+            _bShortHop = true;
+        }
+        else _bShortHop = false;
+    }
+
+    IEnumerator JumpTimer()
+    {
+        _jumpPressedTimer = 0;
+        while(_jumpPressedTimer <= _jumpFullPressWindowTime)
+        {
+            _jumpPressedTimer += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
     }
 
     private void OnLand()
@@ -65,8 +151,11 @@ public class PlayerMovementComponent : MonoBehaviour
         bIsOnFloor = true;
         JumpCounter = 0;
         bCanJump = true;
+        _bShortHop = false;
     }
+    #endregion
 
+    #region GroundCheck
     private bool RaycastToGround(bool castLeftEdge)
     {
         Bounds playerBounds = Player.Instance.GetComponent<Collider2D>().bounds;
@@ -76,7 +165,7 @@ public class PlayerMovementComponent : MonoBehaviour
         //Debug.DrawLine(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.3f, Color.blue);
         if (Physics2D.Linecast(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.2f, _groundCheckMask))
         {
-            if(!bIsOnFloor) OnLand();
+            OnLand();
             return true;
         }
         else return false;
@@ -104,4 +193,5 @@ public class PlayerMovementComponent : MonoBehaviour
             }
         }
     }
+    #endregion
 }
