@@ -2,17 +2,31 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 //Manages all player FX, spawning of particales, SFX, Animation etc
 
 public class PlayerFX : MonoBehaviour
 {
-    [SerializeField] bool bUseCodeBasedAnims = true;
+    Player _player;
 
+
+    [Header("--- Code based Animations ---")]
+    [SerializeField] bool bUseCodeBasedAnims = true;
+    [Header("Squash")]
     [SerializeField] Vector2 _squashScalePivotPoint = new Vector2(0,-0.95f);
     [SerializeField] Vector2 _maxSquash = new Vector2(1.4f, 0.55f);
     [SerializeField] float _squashDuration = 0.05f;
 
+    [Header("--- Camera Shakes ---")]
+    [SerializeField] NoiseSettings _playerLandShake;
+    [SerializeField] float _landingCamShakeDuration = 0.2f;
+    [SerializeField] float _landingCamShakeIntensityMod = 1f;
+
+    private void Start()
+    {
+        _player = Player.Instance;
+    }
 
     private void OnEnable()
     {
@@ -30,11 +44,12 @@ public class PlayerFX : MonoBehaviour
 
     private void PlayerLandFX()
     {
-        Debug.Log("Player Land FX");
         if (bUseCodeBasedAnims)
         {
             StartCoroutine(Squash());
+
         }
+        CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod,_landingCamShakeDuration,_playerLandShake);
     }
 
     private void PlayerJumpFX()

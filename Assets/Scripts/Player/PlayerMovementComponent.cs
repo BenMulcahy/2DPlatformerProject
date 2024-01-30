@@ -42,7 +42,7 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _jumpHangThreshold = 1.5f;
     [SerializeField] float _jumpHangAccelerationMod = 1.2f;
     [SerializeField] float _jumpHangMaxSpeedMod = 1.1f;
-    [SerializeField] float _maxFallSpeed = 40.0f;
+    public float MaxFallSpeed = 45.0f;
 
     [Header("Timers")][Space(2)]
     [SerializeField] float _jumpFullPressWindowTime = 0.33f;
@@ -131,6 +131,8 @@ public class PlayerMovementComponent : MonoBehaviour
         if (JumpCounter >= maxJumps) bCanJump = false;
 
         //Jump
+        RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
+        RB.gravityScale = _defaultGravityScale;
         float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
         RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
 
@@ -177,7 +179,7 @@ public class PlayerMovementComponent : MonoBehaviour
         else
         {
             RB.gravityScale = _fallingGravityScale; //Falling
-            RB.velocity = new Vector2(RB.velocity.x, Mathf.Max(RB.velocityY, -_maxFallSpeed)); //Clamp fall speed to max
+            RB.velocity = new Vector2(RB.velocity.x, Mathf.Max(RB.velocityY, -MaxFallSpeed)); //Clamp fall speed to max
         }
     }
 
