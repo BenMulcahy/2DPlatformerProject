@@ -460,7 +460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b024657c592304700bd13bd68fafe0d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _jumpInputBuffer: 0.01
+  _jumpInputBuffer: 0.15
 --- !u!114 &763067708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -473,20 +473,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e22f2a8e4c204974aa4b86a6925e5a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _walkSpeed: 15
-  _sprintSpeed: 20
-  _accelleration: 2.5
+  _walkSpeed: 18
+  _sprintSpeed: 13
+  _accelleration: 2
   _decelleration: 4
-  _jumpHeight: 4
+  _jumpHeight: 4.5
   maxJumps: 1
-  _airAccellerationMod: 1.25
-  _airDeccelleraionMod: 0.8
+  _airAccellerationMod: 1.2
+  _airDeccelleraionMod: 0.33
   _defaultGravityScale: 10
   _fallingGravityScale: 12
-  _shortHopGravityScale: 18
-  _jumpApexGravityModifier: 0.4
+  _shortHopGravityScale: 16
+  _jumpApexGravityModifier: 0.3
   _jumpHangThreshold: 1.5
-  _maxFallSpeed: 40
+  _jumpHangAccelerationMod: 1.3
+  _jumpHangMaxSpeedMod: 1.5
+  _maxFallSpeed: 45
   _jumpFullPressWindowTime: 0.33
   _coyoteTime: 0.05
   _groundCheckMask:
@@ -759,6 +761,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a4b2f40216a94326af534a7e4dc66f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bUseCodeBasedAnims: 1
   _squashScalePivotPoint: {x: 0, y: -0.95}
   _maxSquash: {x: 1.33, y: 0.475}
   _squashDuration: 0.1

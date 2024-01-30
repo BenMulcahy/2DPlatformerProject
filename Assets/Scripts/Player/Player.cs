@@ -115,8 +115,9 @@ public class Player : MonoBehaviour
         //Jumping Input Buffer
         if (_bWantsToJump)
         {
-            if (_jumpInputBuffer > 0 && !playerMovement.bCanJump)
+            if (_jumpInputBufferTimer > 0 && !playerMovement.bCanJump)
             {
+                Debug.Log("Using Buffer Currently at: " + _jumpInputBufferTimer);
                 _jumpInputBufferTimer -= Time.deltaTime;
             }
             else

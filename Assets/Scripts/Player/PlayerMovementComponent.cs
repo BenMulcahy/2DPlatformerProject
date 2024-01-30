@@ -16,11 +16,9 @@ public class PlayerMovementComponent : MonoBehaviour
     public static event OnPlayerMove onPlayerMove;
     #endregion
 
-
     #region Variables
     public Rigidbody2D RB { get; private set; }
     public bool bIsFacingRight { get; private set;}
-
 
     [Header("--- Walk/Run ---")][Space(5)]
     [SerializeField] float _walkSpeed = 15.0f;
@@ -39,8 +37,11 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _defaultGravityScale = 10.0f;
     [SerializeField] float _fallingGravityScale = 12.0f;
     [SerializeField] float _shortHopGravityScale = 18.0f;
+    [Header("Jump Apex 'Hang'")][Space(2)]
     [SerializeField][Range(0.1f,1f)] float _jumpApexGravityModifier = 0.4f;
     [SerializeField] float _jumpHangThreshold = 1.5f;
+    [SerializeField] float _jumpHangAccelerationMod = 1.2f;
+    [SerializeField] float _jumpHangMaxSpeedMod = 1.1f;
     [SerializeField] float _maxFallSpeed = 40.0f;
 
     [Header("Timers")][Space(2)]
@@ -101,6 +102,12 @@ public class PlayerMovementComponent : MonoBehaviour
         float accelRate;
         if (bIsOnFloor) accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce : deccelForce;
         else accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce * _airAccellerationMod : deccelForce * _airDeccelleraionMod;
+
+        if (!bIsOnFloor && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Additional Air hang control
+        {
+            accelRate *= _jumpHangAccelerationMod;
+            targetSpeed *= _jumpHangMaxSpeedMod;
+        }
 
         float movementVal = (targetSpeed - RB.velocity.x) * accelRate;
         RB.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
