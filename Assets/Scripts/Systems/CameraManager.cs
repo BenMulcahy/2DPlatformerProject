@@ -5,6 +5,7 @@ using Cinemachine;
 
 public class CameraManager : MonoBehaviour
 {
+    //TODO: If player within Y bounds of the screen space then dont track in the Y
 
     public static CameraManager Instance { get; private set; }
     [field:SerializeField] public CinemachineVirtualCamera MainCamera { get; private set; }
@@ -54,7 +55,7 @@ public class CameraManager : MonoBehaviour
 
     void UpdateOffset()
     {
-        Vector2 targetOffset = new Vector2(_player.GetComponent<PlayerMovementComponent>().bIsFacingRight ? CameraOffset.x : -CameraOffset.x, CameraOffset.y);
+        Vector2 targetOffset = new Vector2(_player.bIsRightInput ? CameraOffset.x : -CameraOffset.x, CameraOffset.y);
         MainCamera.GetCinemachineComponent<CinemachineFramingTransposer>().m_TrackedObjectOffset = targetOffset;
 
     }

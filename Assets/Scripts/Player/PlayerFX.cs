@@ -47,14 +47,13 @@ public class PlayerFX : MonoBehaviour
         if (bUseCodeBasedAnims)
         {
             StartCoroutine(Squash());
-
         }
         CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod,_landingCamShakeDuration,_playerLandShake);
     }
 
     private void PlayerJumpFX()
     {
-        Debug.Log("Player Jump FX");
+        //Debug.Log("Player Jump FX");
 
         if (bUseCodeBasedAnims)
         {

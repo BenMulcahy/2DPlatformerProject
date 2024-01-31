@@ -11,6 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField] float _jumpInputBuffer = 0.02f;
     float _jumpInputBufferTimer;
     bool _bWantsToJump = false;
+    public bool bIsRightInput { get; private set; }
 
     private void Awake()
     {
@@ -35,6 +36,10 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        //Check for L/R Input
+        if (PlayerInputActions.Gameplay.Movement.ReadValue<float>() > 0) bIsRightInput = true;
+        else if (PlayerInputActions.Gameplay.Movement.ReadValue<float>() < 0) bIsRightInput = false;
+
         CheckInputBuffers();
     }
 
@@ -117,7 +122,7 @@ public class Player : MonoBehaviour
         {
             if (_jumpInputBufferTimer > 0 && !playerMovement.bCanJump)
             {
-                Debug.Log("Using Buffer Currently at: " + _jumpInputBufferTimer);
+                //Debug.Log("Using Buffer Currently at: " + _jumpInputBufferTimer);
                 _jumpInputBufferTimer -= Time.deltaTime;
             }
             else
@@ -128,7 +133,7 @@ public class Player : MonoBehaviour
                 if (!PlayerInputActions.Gameplay.Jump.IsPressed())
                 {
                     //If short hop from buffer
-                    Debug.Log("Short hop buffer protect");
+                    //Debug.Log("Short hop buffer protect");
                     playerMovement.StopJump();
                 }
             }
