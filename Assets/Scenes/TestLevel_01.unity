@@ -442,6 +442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6ec617829d204b31871d570ec7fd046, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EditorTimeScale: 1
 --- !u!4 &473961792
 Transform:
   m_ObjectHideFlags: 0
@@ -639,7 +640,7 @@ MonoBehaviour:
   MaxFallSpeed: 45
   bWallJumpEnabled: 1
   _wallClingDuration: 0.33
-  _wallJumpCooldown: 0.33
+  _wallJumpCooldown: 0.8
   _wallJumpForce: {x: 20, y: 35}
   _wallJumpDuration: 0.15
   _wallJumpToRunLerp: 0.5
