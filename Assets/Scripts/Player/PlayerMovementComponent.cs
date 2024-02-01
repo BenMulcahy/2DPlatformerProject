@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Xml;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public class PlayerMovementComponent : MonoBehaviour
@@ -62,16 +64,18 @@ public class PlayerMovementComponent : MonoBehaviour
     public float MaxFallSpeed = 45.0f;
 
     [Header("--- Wall Jump/Slide ---")][Space(5)]
+
+    RaycastHit2D _wallHit;
+
     public bool bWallJumpEnabled = true;
+    [SerializeField] float _wallClingDuration = 0.33f; // time before letting go of wall if no input recieved
     [SerializeField] float _wallJumpCooldown = 1.0f;
     EWallState _wallState = EWallState.NULL;
-    GameObject lastWallLanded;
     [SerializeField] Vector2 _wallJumpForce = new Vector2(30f, 15f);
     [SerializeField] float _wallJumpDuration = 0.8f; //How long wall jump lasts before giving full control to run
     [SerializeField] float _wallJumpToRunLerp = 0.5f; //lerp to return control to running input during walljump
     [SerializeField] LayerMask _wallMask;
     [SerializeField] int _wallClingJumpRefund = 1;
-    [SerializeField] float _wallSlideCoyoteTimeMod = 1.25f;
     [Header("Gravity Scales")]
     [SerializeField] float _wallSlideUpGravityScale = 18.0f; //Used to decel the player when sliding up a wall
     [SerializeField] float _wallSlideDownGravityScale = 5.0f;
@@ -79,12 +83,15 @@ public class PlayerMovementComponent : MonoBehaviour
     [Header("--- Timers ---")][Space(5)]
     [SerializeField] float _jumpFullPressWindowTime = 0.33f;
     [SerializeField] float _coyoteTime = 0.05f;
+    [SerializeField] float _wallClingCoyoteTimeMod = 1.25f;
     public bool bCanJump { get; private set; }
     public bool bIsOnFloor { get; private set; }
     public int JumpCounter { get; private set; }
     float _jumpPressedTimer;
     float _wallJumpDurationTimer;
     float _wallJumpCdTimer;
+    float _wallClingDurationTimer;
+    float _wallClingCoyoteTimer;
 
     [Header("--- GroundCheck ---")][Space(5)]
     [SerializeField] LayerMask _groundCheckMask;
@@ -101,8 +108,9 @@ public class PlayerMovementComponent : MonoBehaviour
 
         //Only refund up to max amount of jumps
         if (_wallClingJumpRefund > MaxJumps) _wallClingJumpRefund = MaxJumps;
-        _wallJumpDurationTimer = _wallJumpDuration;
-        _wallJumpCdTimer = _wallJumpCooldown;
+
+        //Reset Timers
+        ResetAllTimers();
     }
 
     private void Awake()
@@ -112,21 +120,23 @@ public class PlayerMovementComponent : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(GroundCheck());
-        StartCoroutine(WallCheck());
         RB.gravityScale = _defaultGravityScale;
-        _wallJumpDurationTimer = _wallJumpDuration;
-        _wallJumpCdTimer = _wallJumpCooldown;
+        ResetAllTimers();
+
+        StartCoroutine(GroundCheck());
+        //StartCoroutine(WallCheck());
+
     }
 
     private void FixedUpdate()
     {
         MovementX();
-        UpdateGravityScale();
     }
 
     private void Update()
     {
+        UpdateWallStatus();
+        UpdateGravityScale();
         UpdateTimers();
     }
     #endregion
@@ -142,6 +152,24 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             _wallJumpCdTimer += Time.deltaTime;
         }
+
+        if(_wallClingDurationTimer < _wallClingDuration)
+        {
+            _wallClingDurationTimer += Time.deltaTime;
+        }
+
+        if(_wallClingCoyoteTimer < _coyoteTime * _wallClingCoyoteTimeMod)
+        {
+            _wallClingCoyoteTimer += Time.deltaTime;
+        }
+    }
+
+    void ResetAllTimers()
+    {
+        _wallJumpDurationTimer = _wallJumpDuration;
+        _wallJumpCdTimer = _wallJumpCooldown;
+        _wallClingDurationTimer = _wallClingDuration;
+        _wallClingCoyoteTimer = _coyoteTime * _wallClingCoyoteTimeMod;
     }
 
     #region Walk/Running
@@ -197,7 +225,7 @@ public class PlayerMovementComponent : MonoBehaviour
         JumpCounter++;
         if (JumpCounter >= MaxJumps) bCanJump = false;
 
-        if(_wallState != EWallState.NULL && bWallJumpEnabled && _wallJumpCdTimer >= _wallJumpCooldown) //_bTouchingWall might cause issues in edge cases where player wants to jump not wall jump?
+        if(_wallState != EWallState.NULL && bWallJumpEnabled && _wallJumpCdTimer >= _wallJumpCooldown)
         {
             DoWallJump();
             hasJumped = true;
@@ -255,7 +283,8 @@ public class PlayerMovementComponent : MonoBehaviour
         }
         else if(JumpCounter > 0 && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Reaching Apex
         {
-            RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
+            if (_wallState != EWallState.NULL) RB.gravityScale = _wallSlideDownGravityScale;
+            else RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
         }
         else
         {
@@ -283,85 +312,36 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
     #region WallJump/Hang
-
-    IEnumerator WallCheck()
+    void UpdateWallStatus()
     {
-        while (true)
+        if(!bIsOnFloor) //if not on floor and inputting dir
         {
-            if (!bIsOnFloor)
+            if (CheckForWall()) //Is near wall
             {
-                if (CastToWall())
+                float dirInput = Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>();
+                //Debug.Log("Wall");
+                if (dirInput != 0) //If holding a dir
                 {
-                    yield return new WaitForEndOfFrame();
+                    Debug.Log("Stick to Wall");
+                    if (_wallState == EWallState.NULL) OnWallLand(); //Only fire if wall state currently null -> results in only firing first time hiting wall
+                    _wallState = _wallHit.normal.x < 0 ? EWallState.onRightWall : EWallState.onLeftWall;
+                    _wallClingDurationTimer = 0;
                 }
-                else
+                else //Go to release wall
                 {
-                    yield return new WaitForSeconds(_coyoteTime * _wallSlideCoyoteTimeMod); //Buffer leaving wall by coyoteTime
-                    _wallState = EWallState.NULL;
+                    if (_wallClingDurationTimer >= _wallClingDuration && _wallState != EWallState.NULL) ReleaseWall();
                 }
+                _wallClingCoyoteTimer = 0;
             }
-            yield return new WaitForEndOfFrame();
-        }
-    }
-
-    private bool CastToWall()
-    {
-        if(Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>() != 0)
-        {
-            //Using bounding check to get feet and head pos -> used in ledge detect
-            Bounds playerBounds = Player.Instance.GetComponent<Collider2D>().bounds;
-            Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
-            Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
-
-            //Cast from head and feet in current input direction
-            RaycastHit2D headHit = Physics2D.Linecast(headPos, Player.Instance.bIsRightInput ? headPos + Vector2.right : headPos + Vector2.left, _wallMask);
-            RaycastHit2D feetHit = Physics2D.Linecast(feetPos, Player.Instance.bIsRightInput ? feetPos + Vector2.right : feetPos + Vector2.left, _wallMask);
-
-            if (headHit && feetHit)
-            {
-                //Both hit -> Wall cling
-                if(_wallState == EWallState.NULL) OnWallLand(); //Only fire if wall state currently null -> results in only firing first time hiting wall
-                _wallState = headHit.normal.x < 0 ? EWallState.onRightWall : EWallState.onLeftWall;
-                lastWallLanded = headHit.transform.gameObject;
-                //Debug.Log("OnWallCling: " + _wallState);
-                return true;
-            }
-            /* Possibilty for corner detection?
             else
             {
-                if (headHit)
-                {
-                    //if only head
-                }
-                else if (feetHit)
-                {
-                    //if only feet
-                }
-            }
-            */
-            else
-            {
-                return false;
+                Debug.Log("No Wall");
+                if (_wallClingCoyoteTimer >= _coyoteTime * _wallClingCoyoteTimeMod) ReleaseWall();
             }
         }
-        else
-        {
-            return false;
-        }
     }
-
-    void OnWallLand()
-    {
-        onPlayerLandWall?.Invoke();
-        JumpCounter = Mathf.Clamp(JumpCounter -_wallClingJumpRefund,0,MaxJumps);
-        if(JumpCounter < MaxJumps) bCanJump = true;
-        _bShortHop = false;
-        _wallJumpDurationTimer = _wallJumpDuration;
-    }
-
     void DoWallJump()
     {
-
         Vector2 force = _wallJumpForce;
         force.x *= (_wallState == EWallState.onRightWall) ? -1 : 1; //apply force in opposite direction of wall
         if (Mathf.Sign(RB.velocity.x) != Mathf.Sign(force.x)) force.x -= RB.velocity.x; //Correct for any x velocity being imparted (e.g coyote time kicked in from leaving wall)
@@ -372,12 +352,58 @@ public class PlayerMovementComponent : MonoBehaviour
         RB.AddForce(force, ForceMode2D.Impulse);
 
         //Ensure you are no longer registered as on the wall
-        _wallState = EWallState.NULL;
         _wallJumpDurationTimer = 0;
+        ReleaseWall();
 
         //TODO: Only care for walljump CD when same wall
         _wallJumpCdTimer = 0;
         onPlayerWallJump?.Invoke();
+    }
+
+    void ReleaseWall()
+    {
+        Debug.Log("Release the wall");
+        _wallState = EWallState.NULL;
+    }
+
+    /// <summary>
+    /// Checks if there is a wall in front of player and returns true or false, will also set _wallHit cast
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckForWall()
+    {
+        //Debug.Log("Check Wall");
+
+        //Using bounding check to get feet and head pos -> used in ledge detect
+        Bounds playerBounds = Player.Instance.GetComponent<Collider2D>().bounds;
+        Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
+        Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
+
+        //Cast from head and feet in current input direction
+        _wallHit = Physics2D.Linecast(headPos, Player.Instance.bIsRightInput ? headPos + Vector2.right : headPos + Vector2.left, _wallMask);
+        RaycastHit2D feetHit = Physics2D.Linecast(feetPos, Player.Instance.bIsRightInput ? feetPos + Vector2.right : feetPos + Vector2.left, _wallMask);
+
+        Debug.DrawLine(headPos, Player.Instance.bIsRightInput ? headPos + Vector2.right : headPos + Vector2.left, Color.green);
+        Debug.DrawLine(feetPos, Player.Instance.bIsRightInput ? feetPos + Vector2.right : feetPos + Vector2.left, Color.red);
+
+        if (_wallHit && feetHit)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    void OnWallLand()
+    {
+        Debug.Log("Land Wall");
+        onPlayerLandWall?.Invoke();
+        JumpCounter = Mathf.Clamp(JumpCounter - _wallClingJumpRefund, 0, MaxJumps);
+        if (JumpCounter < MaxJumps) bCanJump = true;
+        _bShortHop = false;
+        _wallJumpDurationTimer = _wallJumpDuration;
     }
 
     #endregion
