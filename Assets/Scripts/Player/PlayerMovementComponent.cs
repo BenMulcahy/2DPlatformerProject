@@ -7,6 +7,7 @@ public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Add Edge Detect so you dont just bonk
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair
+    //TODO: Slow player Y Vel on wall cling to max value 
 
     #region Enums
     enum EWallState
@@ -46,37 +47,37 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _decelleration = 4f; //Time Aprx to stop
 
     [Header("--- Jumping ---")][Space(5)]
-    bool _bCanVertJump = true;
     [SerializeField] float _jumpHeight = 4.0f;
     public int MaxJumps = 1;
-    bool _bShortHop;
     [SerializeField][Range(0.01f, 2f)] float _airAccellerationMod = 1.25f; //multiplied to base accel
     [SerializeField][Range(0.01f, 2f)] float _airDeccelleraionMod = 0.8f; //multipied to base deccel
-    [Header("Gravity Scales")]
-    [SerializeField] float _defaultGravityScale = 10.0f;
-    [SerializeField] float _fallingGravityScale = 12.0f;
-    [SerializeField] float _shortHopGravityScale = 18.0f;
     [Header("Jump Apex 'Hang'")]
     [SerializeField][Range(0.1f, 1f)] float _jumpApexGravityModifier = 0.4f;
     [SerializeField] float _jumpHangThreshold = 1.5f;
     [SerializeField] float _jumpHangAccelerationMod = 1.2f;
     [SerializeField] float _jumpHangMaxSpeedMod = 1.1f;
     public float MaxFallSpeed = 45.0f;
+    bool _bCanVertJump = true;
+    bool _bShortHop;
+
+
 
     [Header("--- Wall Jump/Slide ---")][Space(5)]
-
-    RaycastHit2D _wallHit;
-
     public bool bWallJumpEnabled = true;
     [SerializeField] float _wallClingDuration = 0.33f; // time before letting go of wall if no input recieved
     [SerializeField] float _wallJumpCooldown = 1.0f;
-    EWallState _wallState = EWallState.NULL;
     [SerializeField] Vector2 _wallJumpForce = new Vector2(30f, 15f);
     [SerializeField] float _wallJumpDuration = 0.8f; //How long wall jump lasts before giving full control to run
     [SerializeField] float _wallJumpToRunLerp = 0.5f; //lerp to return control to running input during walljump
     [SerializeField] LayerMask _wallMask;
     [SerializeField] int _wallClingJumpRefund = 1;
-    [Header("Gravity Scales")]
+    RaycastHit2D _wallHit;
+    EWallState _wallState = EWallState.NULL;
+
+    [Header("--- Gravity Scales ---")][Space(5)]
+    [SerializeField] float _defaultGravityScale = 10.0f;
+    [SerializeField] float _fallingGravityScale = 12.0f;
+    [SerializeField] float _shortHopGravityScale = 18.0f;
     [SerializeField] float _wallSlideUpGravityScale = 18.0f; //Used to decel the player when sliding up a wall
     [SerializeField] float _wallSlideDownGravityScale = 5.0f;
 
