@@ -612,7 +612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b024657c592304700bd13bd68fafe0d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _jumpInputBuffer: 0.15
+  _jumpInputBuffer: 0.33
 --- !u!114 &763067708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -648,12 +648,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   _wallClingJumpRefund: 1
+  _wallSlideSpeed: -8
+  _wallSlideDecelleration: 2
   _defaultGravityScale: 10
   _fallingGravityScale: 12
   _shortHopGravityScale: 16
   _wallSlideUpGravityScale: 18
-  _wallSlideDownGravityScale: 2
-  _jumpFullPressWindowTime: 0.33
+  _jumpFullPressWindowTime: 0.42
   _coyoteTime: 0.05
   _wallClingCoyoteTimeMod: 1.25
   _groundCheckMask:
@@ -1132,7 +1133,7 @@ Transform:
   m_GameObject: {fileID: 1166738265}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -52.8, y: -23.7, z: 0}
+  m_LocalPosition: {x: -52.8, y: -121.1, z: 0}
   m_LocalScale: {x: 43.049957, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1398,8 +1399,8 @@ Transform:
   m_GameObject: {fileID: 1215537536}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -32, y: -9.1, z: 0}
-  m_LocalScale: {x: 30.35022, y: 1, z: 1}
+  m_LocalPosition: {x: -32, y: -62, z: 0}
+  m_LocalScale: {x: 136.19661, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

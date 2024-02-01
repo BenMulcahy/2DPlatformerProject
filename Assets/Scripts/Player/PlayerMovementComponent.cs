@@ -6,8 +6,10 @@ using UnityEngine;
 public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Add Edge Detect so you dont just bonk
-    //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair
-    //TODO: Slow player Y Vel on wall cling to max value 
+    //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
+    //TODO: Add setting for init jump being from grounded or not
+
+    //TODO: Possibly ground check and jump timer from coroutines?
 
     #region Enums
     enum EWallState
@@ -65,6 +67,8 @@ public class PlayerMovementComponent : MonoBehaviour
     [Header("--- Wall Jump/Slide ---")][Space(5)]
     public bool bWallJumpEnabled = true;
     [SerializeField] float _wallClingDuration = 0.33f; // time before letting go of wall if no input recieved
+
+    [Header("Wall Jump")]
     [SerializeField][Tooltip("Only affects repeat jumps from same wall")] float _wallJumpCooldown = 1.0f; //See tooltip
     [SerializeField] Vector2 _wallJumpForce = new Vector2(30f, 15f);
     [SerializeField] float _wallJumpDuration = 0.8f; //How long wall jump lasts before giving full control to run
@@ -73,15 +77,18 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] int _wallClingJumpRefund = 1;
     RaycastHit2D _currentWallHit;
     EWallState _wallState = EWallState.NULL;
-    GameObject _lastWallLeft;
+    GameObject _lastWallDeparted;
     GameObject _lastWallLanded;
+
+    [Header("Wall Sliding")]
+    [SerializeField] float _wallSlideSpeed = -8.0f;
+    [SerializeField] float _wallSlideDecelleration = 1.8f;
 
     [Header("--- Gravity Scales ---")][Space(5)]
     [SerializeField] float _defaultGravityScale = 10.0f;
     [SerializeField] float _fallingGravityScale = 12.0f;
     [SerializeField] float _shortHopGravityScale = 18.0f;
     [SerializeField] float _wallSlideUpGravityScale = 18.0f; //Used to decel the player when sliding up a wall
-    [SerializeField] float _wallSlideDownGravityScale = 5.0f;
 
     [Header("--- Timers ---")][Space(5)]
     [SerializeField] float _jumpFullPressWindowTime = 0.33f;
@@ -144,6 +151,7 @@ public class PlayerMovementComponent : MonoBehaviour
     }
     #endregion
 
+    #region Timer Management
     void UpdateTimers()
     {
         if (_wallJumpDurationTimer < _wallJumpDuration)
@@ -174,6 +182,8 @@ public class PlayerMovementComponent : MonoBehaviour
         _wallClingDurationTimer = _wallClingDuration;
         _wallClingCoyoteTimer = _coyoteTime * _wallClingCoyoteTimeMod;
     }
+
+    #endregion
 
     #region Walk/Running
     private void MovementX()
@@ -286,13 +296,15 @@ public class PlayerMovementComponent : MonoBehaviour
         }
         else if(JumpCounter > 0 && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Reaching Apex
         {
-            if (_wallState != EWallState.NULL) RB.gravityScale = _wallSlideDownGravityScale;
-            else RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
+            RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
+        }
+        else if(_wallState != EWallState.NULL)
+        {
+            RB.gravityScale = 0;
         }
         else
         {
-            if (_wallState != EWallState.NULL) RB.gravityScale = _wallSlideDownGravityScale;
-            else RB.gravityScale = _fallingGravityScale; //Falling
+            RB.gravityScale = _fallingGravityScale; //Falling
             RB.velocity = new Vector2(RB.velocity.x, Mathf.Max(RB.velocityY, -MaxFallSpeed)); //Clamp fall speed to max
         }
     }
@@ -325,6 +337,15 @@ public class PlayerMovementComponent : MonoBehaviour
                 //Debug.Log("Stick to Wall");
                 if (_wallState == EWallState.NULL) OnWallLand(); //Only fire if wall state currently null -> results in only firing first time hiting wall
                 _wallState = _currentWallHit.normal.x < 0 ? EWallState.onRightWall : EWallState.onLeftWall;
+
+                //Wall Slide
+                if (RB.velocity.y < 0)
+                {
+                    float speedDif = _wallSlideSpeed - RB.velocity.y;
+                    float movement = speedDif * _wallSlideDecelleration;
+                    movement = Mathf.Clamp(movement, -Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime), Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime));
+                    RB.AddForce(movement * Vector2.up);
+                }
 
                 if (dirInput != 0) //If holding a dir
                 {
@@ -360,7 +381,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
         _wallJumpCdTimer = 0;
 
-        _lastWallLeft = _lastWallLanded;
+        _lastWallDeparted = _lastWallLanded;
 
 
         onPlayerWallJump?.Invoke();
@@ -385,12 +406,14 @@ public class PlayerMovementComponent : MonoBehaviour
         Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
         Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
 
-        //Cast from head and feet in current input direction
-        _currentWallHit = Physics2D.Linecast(headPos, Player.Instance.bIsRightInput ? headPos + Vector2.right : headPos + Vector2.left, _wallMask);
-        RaycastHit2D feetHit = Physics2D.Linecast(feetPos, Player.Instance.bIsRightInput ? feetPos + Vector2.right : feetPos + Vector2.left, _wallMask);
+        bool castToRight = RB.velocityX > 0.05 ? bIsMovingRight : Player.Instance.bIsRightInput;
 
-        Debug.DrawLine(headPos, Player.Instance.bIsRightInput ? headPos + Vector2.right : headPos + Vector2.left, Color.green);
-        Debug.DrawLine(feetPos, Player.Instance.bIsRightInput ? feetPos + Vector2.right : feetPos + Vector2.left, Color.red);
+        //Cast from head and feet in current input direction
+        _currentWallHit = Physics2D.Linecast(headPos, castToRight ? headPos + Vector2.right : headPos + Vector2.left, _wallMask);
+        RaycastHit2D feetHit = Physics2D.Linecast(feetPos, castToRight ? feetPos + Vector2.right : feetPos + Vector2.left, _wallMask);
+
+        Debug.DrawLine(headPos, castToRight ? headPos + Vector2.right : headPos + Vector2.left, Color.green);
+        Debug.DrawLine(feetPos, castToRight ? feetPos + Vector2.right : feetPos + Vector2.left, Color.red);
 
         if (_currentWallHit && feetHit)
         {
@@ -408,7 +431,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
         _lastWallLanded = _currentWallHit.transform.gameObject;
 
-        if (_lastWallLeft != _lastWallLanded)
+        if (_lastWallDeparted != _lastWallLanded)
         {
             _wallJumpCdTimer = _wallJumpCooldown;
         }
