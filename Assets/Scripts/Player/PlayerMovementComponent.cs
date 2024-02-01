@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Add Edge Detect so you dont just bonk
-    //TODO: Why wall jump from left side not force right?
+    //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair
 
     #region Enums
     enum EWallState
@@ -156,6 +156,7 @@ public class PlayerMovementComponent : MonoBehaviour
         if(_wallJumpDurationTimer < _wallJumpDuration)
         {
             targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _wallJumpToRunLerp);
+            //targetSpeed = 0;
         }
 
         //Calculate accel and deccel forces to apply
@@ -360,19 +361,18 @@ public class PlayerMovementComponent : MonoBehaviour
 
     void DoWallJump()
     {
-        //Ensure you are no longer registered as on the wall
-        _wallState = EWallState.NULL;
 
-        Vector2 force = new Vector2(_wallJumpForce.x, _wallJumpForce.y);
-        force.x *= _wallState == EWallState.onRightWall ? -1 : 1; //apply force in opposite direction of wall
-
+        Vector2 force = _wallJumpForce;
+        force.x *= (_wallState == EWallState.onRightWall) ? -1 : 1; //apply force in opposite direction of wall
         if (Mathf.Sign(RB.velocity.x) != Mathf.Sign(force.x)) force.x -= RB.velocity.x; //Correct for any x velocity being imparted (e.g coyote time kicked in from leaving wall)
 
         RB.velocity = new(RB.velocity.x, 0); //kill all downward momentum
 
-        Debug.Log("Apply: " + force + " Walljump force");
-
+        //Debug.Log("Apply: " + force + " Walljump force");
         RB.AddForce(force, ForceMode2D.Impulse);
+
+        //Ensure you are no longer registered as on the wall
+        _wallState = EWallState.NULL;
         _wallJumpDurationTimer = 0;
 
         //TODO: Only care for walljump CD when same wall

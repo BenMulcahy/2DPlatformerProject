@@ -649,7 +649,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   _wallClingJumpRefund: 1
-  _wallSlideCoyoteTimeMod: 1.33
+  _wallSlideCoyoteTimeMod: 2
   _wallSlideUpGravityScale: 18
   _wallSlideDownGravityScale: 3
   _jumpFullPressWindowTime: 0.33
