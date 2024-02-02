@@ -655,7 +655,7 @@ MonoBehaviour:
   _shortHopGravityScale: 16
   _wallSlideUpGravityScale: 18
   _jumpFullPressWindowTime: 0.42
-  _coyoteTime: 0.05
+  _coyoteTime: 0.16
   _wallClingCoyoteTimeMod: 1.25
   _groundCheckMask:
     serializedVersion: 2
