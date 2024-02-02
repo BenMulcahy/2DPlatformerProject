@@ -106,13 +106,13 @@ public class Player : MonoBehaviour
             _bWantsToJump = true;
             _jumpInputBufferTimer = _jumpInputBuffer; 
         }
-        else if (playerMovement.bCanJump) playerMovement.StartJump();
+        else if (playerMovement.bCanJump) playerMovement.OnJumpPerformed();
     }
 
     /* JUMP - Stop */
     private void OnJumpCancelled(InputAction.CallbackContext context)
     {
-        if(playerMovement.JumpCounter > 0) playerMovement.StopJump();
+        if(playerMovement.JumpCounter > 0) playerMovement.OnJumpCancelled();
     }
 
     private void CheckInputBuffers()
@@ -129,12 +129,12 @@ public class Player : MonoBehaviour
             {
                 _bWantsToJump = false;
                 _jumpInputBufferTimer = 0;
-                if (playerMovement.bCanJump) playerMovement.StartJump();
+                if (playerMovement.bCanJump) playerMovement.OnJumpPerformed();
                 if (!PlayerInputActions.Gameplay.Jump.IsPressed())
                 {
                     //If short hop from buffer
                     //Debug.Log("Short hop buffer protect");
-                    playerMovement.StopJump();
+                    playerMovement.OnJumpCancelled();
                 }
             }
         }

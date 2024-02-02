@@ -5,6 +5,8 @@ public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Add Edge Detect so you dont just bonk
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
+    //TODO: Allow for double jumping
+    //TODO: Fix walljump cooldowns
     //TODO: Add setting for init jump being from grounded or not
 
     #region Enums
@@ -35,6 +37,7 @@ public class PlayerMovementComponent : MonoBehaviour
     #region Variables
     public Rigidbody2D RB { get; private set; }
     public bool bIsMovingRight { get; private set; }
+    //public bool bIsOnFloor { get; private set; }
 
     [Header("--- Walk/Run ---")][Space(5)]
     [SerializeField] float _walkSpeed = 15.0f;
@@ -55,7 +58,8 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _jumpHangAccelerationMod = 1.2f;
     [SerializeField] float _jumpHangMaxSpeedMod = 1.1f;
     public float MaxFallSpeed = 45.0f;
-    bool _bCanVertJump = true;
+    public bool bCanJump { get; private set; }
+    public int JumpCounter { get; private set; }
     bool _bShortHop;
 
     [Header("--- Wall Jump/Slide ---")][Space(5)]
@@ -88,15 +92,13 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _jumpFullPressWindowTime = 0.33f;
     [SerializeField] float _coyoteTime = 0.05f;
     [SerializeField] float _wallClingCoyoteTimeMod = 1.25f;
-    public bool bCanJump { get; private set; }
-    public bool bIsOnFloor { get; private set; }
-    public int JumpCounter { get; private set; }
     float _jumpPressedTimer;
     float _wallJumpDurationTimer;
     float _wallJumpCdTimer;
     float _wallClingDurationTimer;
     float _wallClingCoyoteTimer;
-    float _groundCoyoteTimer;
+    float _groundedTimer;
+    bool _bWasGrounded;
 
     [Header("--- GroundCheck ---")][Space(5)]
     [SerializeField] LayerMask _groundCheckMask;
@@ -127,10 +129,6 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         RB.gravityScale = _defaultGravityScale;
         ResetAllTimers();
-
-        //StartCoroutine(GroundCheck());
-        //StartCoroutine(WallCheck());
-
     }
 
     private void FixedUpdate()
@@ -143,6 +141,10 @@ public class PlayerMovementComponent : MonoBehaviour
         UpdateGroundStatus();
         UpdateWallStatus();
         UpdateGravityScale();
+
+        if (IsOnFloor() || _wallState != EWallState.NULL) bCanJump = true;
+        else bCanJump = false;
+
         UpdateTimers();
     }
     #endregion
@@ -165,20 +167,17 @@ public class PlayerMovementComponent : MonoBehaviour
             _wallClingDurationTimer += Time.deltaTime;
         }
 
-        if(_wallClingCoyoteTimer < _coyoteTime * _wallClingCoyoteTimeMod)
+        if (_wallClingCoyoteTimer < _coyoteTime * _wallClingCoyoteTimeMod)
         {
             _wallClingCoyoteTimer += Time.deltaTime;
-        }
-
-        if(_groundCoyoteTimer < _coyoteTime)
-        {
-            _groundCoyoteTimer += Time.deltaTime;
         }
 
         if(_jumpPressedTimer < _jumpFullPressWindowTime)
         {
             _jumpPressedTimer += Time.deltaTime;
         }
+
+        _groundedTimer -= Time.deltaTime;
     }
 
     void ResetAllTimers()
@@ -188,7 +187,6 @@ public class PlayerMovementComponent : MonoBehaviour
         _wallJumpCdTimer = _wallJumpCooldown;
         _wallClingDurationTimer = _wallClingDuration;
         _wallClingCoyoteTimer = _coyoteTime * _wallClingCoyoteTimeMod;
-        _groundCoyoteTimer = _coyoteTime;
     }
 
     #endregion
@@ -214,10 +212,10 @@ public class PlayerMovementComponent : MonoBehaviour
 
         //Calcualte accelleration rate
         float accelRate;
-        if (bIsOnFloor) accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce : deccelForce;
+        if (IsOnFloor()) accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce : deccelForce;
         else accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce * _airAccellerationMod : deccelForce * _airDeccelleraionMod;
 
-        if (!bIsOnFloor && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Additional Air hang control
+        if (!IsOnFloor() && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Additional Air hang control
         {
             accelRate *= _jumpHangAccelerationMod;
             targetSpeed *= _jumpHangMaxSpeedMod;
@@ -228,7 +226,6 @@ public class PlayerMovementComponent : MonoBehaviour
 
         onPlayerMove?.Invoke(RB.velocity);
 
-        //Set Right Facing TODO: Review this
         if (RB.velocity.x < 0) bIsMovingRight = false; else if (RB.velocity.x > 0) bIsMovingRight = true;
     }
 
@@ -239,6 +236,8 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
     #region Jumping/Falling
+
+    /*
     public void StartJump()
     {
         bool hasJumped = false;
@@ -286,6 +285,48 @@ public class PlayerMovementComponent : MonoBehaviour
         _jumpPressedTimer = _jumpFullPressWindowTime;
     }
 
+    */
+
+    public void OnJumpPerformed()
+    {
+        if (JumpCounter >= MaxJumps) return;
+
+        if (_wallState != EWallState.NULL && bWallJumpEnabled && _wallJumpCdTimer >= _wallJumpCooldown) //If on wall
+        {
+            DoWallJump();
+        }
+        else //Normal jump
+        {
+            DoJump();
+        }
+
+        JumpCounter++;
+        _bShortHop = false;
+        _groundedTimer = 0;
+        _jumpPressedTimer = 0;
+    }
+
+    public void OnJumpCancelled()
+    {
+        if(_jumpPressedTimer < _jumpFullPressWindowTime)
+        {
+            _bShortHop = true;
+        }
+        else _bShortHop = false;
+        _jumpPressedTimer = _jumpFullPressWindowTime;
+    }
+
+    void DoJump()
+    {
+        //Jump
+        _groundedTimer = _coyoteTime;
+        RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
+        RB.gravityScale = _defaultGravityScale;
+        float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
+        RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        onPlayerJump?.Invoke();
+    }
+
     private void UpdateGravityScale()
     {
         //Set Grav Scale
@@ -309,27 +350,12 @@ public class PlayerMovementComponent : MonoBehaviour
         }
     }
 
-    private void OnLand()
-    {
-        //Debug.Log("Landed");
-
-        onPlayerLand?.Invoke();
-        //Reset Values on landing
-        bIsOnFloor = true;
-        JumpCounter = 0;
-        bCanJump = true;
-        _bCanVertJump = true;
-        _bShortHop = false;
-        _wallState = EWallState.NULL;
-        _wallJumpDurationTimer = _wallJumpDuration;
-        _wallJumpCdTimer = _wallJumpCooldown;
-    }
     #endregion
 
     #region WallJump/Hang
     void UpdateWallStatus()
     {
-        if(!bIsOnFloor) //if not on floor and inputting dir
+        if(!IsOnFloor()) //if not on floor and inputting dir
         {
             if (CheckForWall()) //Is near wall
             {
@@ -437,7 +463,6 @@ public class PlayerMovementComponent : MonoBehaviour
         }
         onPlayerLandWall?.Invoke();
         JumpCounter = Mathf.Clamp(JumpCounter - _wallClingJumpRefund, 0, MaxJumps);
-        if (JumpCounter < MaxJumps) bCanJump = true;
         _bShortHop = false;
         _wallJumpDurationTimer = _wallJumpDuration;
     }
@@ -447,25 +472,26 @@ public class PlayerMovementComponent : MonoBehaviour
     #region GroundCheck
     void UpdateGroundStatus()
     {
-        if (RaycastToGround(true))
+        if (RaycastToGround(true) || RaycastToGround(false))
         {
-            _groundCoyoteTimer = 0;
-            return;
-        }
-        else if (RaycastToGround(false))
-        {
-            _groundCoyoteTimer = 0;
+            if(!_bWasGrounded)
+            {
+                OnLand();
+            }
+            _bWasGrounded = true;
+            _groundedTimer = _coyoteTime;
             return;
         }
         else
         {
-            if(_groundCoyoteTimer >= _coyoteTime)
-            {
-                bIsOnFloor = false;
-            }   
+            _bWasGrounded = false;
         }
     }
 
+    public bool IsOnFloor()
+    {
+        return _groundedTimer > 0;
+    }
 
     private bool RaycastToGround(bool castLeftEdge)
     {
@@ -474,13 +500,24 @@ public class PlayerMovementComponent : MonoBehaviour
         Vector2 lPos = playerBounds.min;
 
         //Debug.DrawLine(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.3f, Color.blue);
-        if (Physics2D.Linecast(castLeftEdge? lPos : rPos, castLeftEdge ? lPos : rPos + Vector2.down * 0.25f, _groundCheckMask))
+        if (Physics2D.Linecast(castLeftEdge? lPos : rPos, castLeftEdge ? lPos + Vector2.down * 0.25f : rPos + Vector2.down * 0.25f, _groundCheckMask))
         {
-            if(!bIsOnFloor) OnLand();
             return true;
         }
         else return false;
     }
     
+    private void OnLand()
+    {
+        Debug.Log("Landed");
+        onPlayerLand?.Invoke();
+
+        //Reset Values on landing
+        JumpCounter = 0;
+        _bShortHop = false;
+        _wallState = EWallState.NULL;
+        _wallJumpDurationTimer = _wallJumpDuration;
+        _wallJumpCdTimer = _wallJumpCooldown;
+    }
     #endregion
 }

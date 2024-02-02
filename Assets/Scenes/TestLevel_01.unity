@@ -629,7 +629,6 @@ MonoBehaviour:
   _sprintSpeed: 22
   _accelleration: 2
   _decelleration: 5
-  bRequireGroundedInitJump: 1
   _jumpHeight: 6
   MaxJumps: 1
   _airAccellerationMod: 1.2
@@ -657,7 +656,7 @@ MonoBehaviour:
   _wallSlideUpGravityScale: 18
   _jumpFullPressWindowTime: 0.42
   _coyoteTime: 0.33
-  _wallClingCoyoteTimeMod: 1.25
+  _wallClingCoyoteTimeMod: 1
   _groundCheckMask:
     serializedVersion: 2
     m_Bits: 8
