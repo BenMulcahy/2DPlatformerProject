@@ -254,6 +254,7 @@ public class PlayerMovementComponent : MonoBehaviour
         else if(_bCanVertJump)
         {
             //Jump
+            _groundCoyoteTimer = _coyoteTime;
             RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
             RB.gravityScale = _defaultGravityScale;
             float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
@@ -268,7 +269,6 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             //Start Jump Timer
             _bShortHop = false; //ensure bshorthop is false
-            //StartCoroutine(JumpTimer());
             _jumpPressedTimer = 0;
         }
     }
@@ -285,18 +285,6 @@ public class PlayerMovementComponent : MonoBehaviour
         else _bShortHop = false;
         _jumpPressedTimer = _jumpFullPressWindowTime;
     }
-
-    /*
-    IEnumerator JumpTimer()
-    {
-        _jumpPressedTimer = 0;
-        while(_jumpPressedTimer <= _jumpFullPressWindowTime)
-        {
-            _jumpPressedTimer += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
-    }
-    */
 
     private void UpdateGravityScale()
     {
@@ -402,7 +390,7 @@ public class PlayerMovementComponent : MonoBehaviour
     void ReleaseWall()
     {
         _wallState = EWallState.NULL;
-        Debug.Log("Release the wall");
+        //Debug.Log("Release the wall");
     }
 
     /// <summary>
@@ -471,37 +459,13 @@ public class PlayerMovementComponent : MonoBehaviour
         }
         else
         {
-            if(_groundCoyoteTimer > _coyoteTime)
+            if(_groundCoyoteTimer >= _coyoteTime)
             {
                 bIsOnFloor = false;
             }   
         }
     }
 
-    /*
-    public IEnumerator GroundCheck()
-    {
-        while (true)
-        {
-            //Edge Detect L
-            if (RaycastToGround(true))
-            {
-                yield return new WaitForFixedUpdate();
-            }
-            //Edge detect R
-            else if (RaycastToGround(false))
-            {
-                yield return new WaitForFixedUpdate();
-            }
-            else
-            {
-                //if not on floor
-                yield return new WaitForSeconds(_coyoteTime);
-                bIsOnFloor = false;
-            }
-        }
-    }
-    */
 
     private bool RaycastToGround(bool castLeftEdge)
     {
