@@ -6,7 +6,7 @@ public class PlayerMovementComponent : MonoBehaviour
     //TODO: Add Edge Detect so you dont just bonk
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
     //TODO: Allow for double jumping
-    //TODO: Fix walljump cooldowns
+    //TODO: Option to prevent downward motion during Coyote Time?
     //TODO: Add setting for init jump being from grounded or not
 
     #region Enums
@@ -67,6 +67,8 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _wallClingDuration = 0.33f; // time before letting go of wall if no input recieved
     [SerializeField] int _wallClingJumpRefund = 1;
     [SerializeField] LayerMask _wallMask;
+    GameObject _previousWall;
+    GameObject _currentWall;
 
     [Header("Wall Jump")]
     [SerializeField][Tooltip("Only affects repeat jumps from same wall")] float _wallJumpCooldown = 1.0f; //See tooltip
@@ -75,8 +77,6 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _wallJumpToRunLerp = 0.5f; //lerp to return control to running input during walljump
     RaycastHit2D _currentWallHit;
     EWallState _wallState = EWallState.NULL;
-    GameObject _lastWallDeparted;
-    GameObject _lastWallLanded;
 
     [Header("Wall Sliding")]
     [SerializeField] float _wallSlideSpeed = -8.0f;
@@ -96,8 +96,8 @@ public class PlayerMovementComponent : MonoBehaviour
     float _wallJumpDurationTimer;
     float _wallJumpCdTimer;
     float _wallClingDurationTimer;
-    float _wallClingCoyoteTimer;
-    float _groundedTimer;
+    float _lastGroundedTimer;
+    float _lastOnWallTimer;
     bool _bWasGrounded;
 
     [Header("--- GroundCheck ---")][Space(5)]
@@ -138,28 +138,25 @@ public class PlayerMovementComponent : MonoBehaviour
 
     private void Update()
     {
+        UpdateTimers();
+        UpdateGravityScale();
         UpdateGroundStatus();
         UpdateWallStatus();
-        UpdateGravityScale();
 
         if (IsOnFloor() || _wallState != EWallState.NULL) bCanJump = true;
         else bCanJump = false;
 
-        UpdateTimers();
     }
     #endregion
 
     #region Timer Management
     void UpdateTimers()
     {
+        //TODO: Standardize timers (all count up or down)
+
         if (_wallJumpDurationTimer < _wallJumpDuration)
         {
             _wallJumpDurationTimer += Time.deltaTime;
-        }
-
-        if(_wallJumpCdTimer < _wallJumpCooldown)
-        {
-            _wallJumpCdTimer += Time.deltaTime;
         }
 
         if(_wallClingDurationTimer < _wallClingDuration)
@@ -167,26 +164,22 @@ public class PlayerMovementComponent : MonoBehaviour
             _wallClingDurationTimer += Time.deltaTime;
         }
 
-        if (_wallClingCoyoteTimer < _coyoteTime * _wallClingCoyoteTimeMod)
-        {
-            _wallClingCoyoteTimer += Time.deltaTime;
-        }
-
         if(_jumpPressedTimer < _jumpFullPressWindowTime)
         {
             _jumpPressedTimer += Time.deltaTime;
         }
 
-        _groundedTimer -= Time.deltaTime;
+        _lastGroundedTimer -= Time.deltaTime;
+        _lastOnWallTimer -= Time.deltaTime;
+        _wallJumpCdTimer -= Time.deltaTime;
+
     }
 
     void ResetAllTimers()
     {
         _jumpPressedTimer = _jumpFullPressWindowTime;
         _wallJumpDurationTimer = _wallJumpDuration;
-        _wallJumpCdTimer = _wallJumpCooldown;
         _wallClingDurationTimer = _wallClingDuration;
-        _wallClingCoyoteTimer = _coyoteTime * _wallClingCoyoteTimeMod;
     }
 
     #endregion
@@ -291,8 +284,9 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         if (JumpCounter >= MaxJumps) return;
 
-        if (_wallState != EWallState.NULL && bWallJumpEnabled && _wallJumpCdTimer >= _wallJumpCooldown) //If on wall
+        if (_lastOnWallTimer > 0 && _wallState != EWallState.NULL) 
         {
+            if (_wallJumpCdTimer > 0) return;
             DoWallJump();
         }
         else //Normal jump
@@ -302,7 +296,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
         JumpCounter++;
         _bShortHop = false;
-        _groundedTimer = 0;
+        _lastGroundedTimer = 0;
         _jumpPressedTimer = 0;
     }
 
@@ -319,7 +313,8 @@ public class PlayerMovementComponent : MonoBehaviour
     void DoJump()
     {
         //Jump
-        _groundedTimer = _coyoteTime;
+        Debug.Log("Jumpy");
+        _lastGroundedTimer = _coyoteTime;
         RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
         RB.gravityScale = _defaultGravityScale;
         float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
@@ -339,10 +334,6 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
         }
-        else if(_wallState != EWallState.NULL) //Sliding on wall
-        {
-            RB.gravityScale = 0;
-        }
         else
         {
             RB.gravityScale = _fallingGravityScale; //Falling
@@ -353,6 +344,111 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
     #region WallJump/Hang
+
+    void UpdateWallStatus()
+    {
+        if (!IsOnFloor())
+        {
+            if (RayCastToWall()) //Hits wall
+            {
+                if (!_currentWall) OnWallLand();
+                _lastOnWallTimer = _coyoteTime * _wallClingCoyoteTimeMod; //Reset timer;
+
+                if(Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>() != 0)
+                {
+                    WallSlide();
+                }
+                else
+                {
+                    if (_lastOnWallTimer < 0) ReleaseWall();
+                }
+            }
+            else //No wall
+            {
+                if (_lastOnWallTimer < 0 && _wallState != EWallState.NULL) ReleaseWall(); 
+            }
+        }
+    }
+
+    void WallSlide()
+    {
+        if (RB.velocity.y < 0)
+        {
+            RB.gravityScale = 0;
+            float speedDif = _wallSlideSpeed - RB.velocity.y;
+            float movement = speedDif * _wallSlideDecelleration;
+            movement = Mathf.Clamp(movement, -Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime), Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime));
+            RB.AddForce(movement * Vector2.up);
+        }
+    }
+
+    void OnWallLand()
+    {
+        //Debug.Log("Landed on wall!");
+        _wallState = _currentWallHit.normal.x < 0 ? EWallState.onRightWall : EWallState.onLeftWall; //Set wall state
+
+        _currentWall = _currentWallHit.transform.gameObject;
+        if (_previousWall != _currentWall) _wallJumpCdTimer = 0;
+
+        //Reset values
+        JumpCounter = Mathf.Clamp(JumpCounter - _wallClingJumpRefund, 0, MaxJumps);
+        onPlayerLandWall?.Invoke();
+        _bShortHop = false;
+        bCanJump = true;
+    }
+
+    void ReleaseWall(bool fromWallJump = false)
+    {
+        if (fromWallJump)
+        {
+            _lastOnWallTimer = 0;
+            onPlayerWallJump?.Invoke();
+            _wallJumpCdTimer = _wallJumpCooldown; //Start wall jump timer
+            _wallJumpDurationTimer = 0;
+        }
+
+        //Debug.Log("Dropped from wall!");
+        _wallState = EWallState.NULL;
+        _previousWall = _currentWall;
+        _currentWall = null;
+    }
+
+    bool RayCastToWall()
+    {
+        Bounds playerBounds = Player.Instance.GetComponent<Collider2D>().bounds;
+        Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
+        Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
+
+        bool castToRight = RB.velocityX > 0.05 ? bIsMovingRight : Player.Instance.bIsRightInput;
+
+        //Cast from head and feet in current input direction
+        _currentWallHit = Physics2D.Linecast(headPos, castToRight ? headPos + Vector2.right * 0.85f: headPos + Vector2.left * 0.85f, _wallMask);
+        RaycastHit2D feetHit = Physics2D.Linecast(feetPos, castToRight ? feetPos + Vector2.right * 0.85f : feetPos + Vector2.left * 0.85f, _wallMask);
+
+        Debug.DrawLine(headPos, castToRight ? headPos + Vector2.right * 0.85f : headPos + Vector2.left * 0.85f, Color.green);
+        Debug.DrawLine(feetPos, castToRight ? feetPos + Vector2.right * 0.85f : feetPos + Vector2.left * 0.85f, Color.red);
+
+        if (_currentWallHit && feetHit) return true;
+        else return false;
+    }
+
+    void DoWallJump()
+    {
+        //Debug.Log("Do wall jump!");
+
+        Vector2 force = _wallJumpForce;
+        force.x *= (_wallState == EWallState.onRightWall) ? -1 : 1; //apply force in opposite direction of wall
+        if (Mathf.Sign(RB.velocity.x) != Mathf.Sign(force.x)) force.x -= RB.velocity.x; //Correct for any x velocity being imparted (e.g coyote time kicked in from leaving wall)
+
+        RB.velocity = new(RB.velocity.x, 0); //kill all downward momentum
+
+        Debug.Log("Apply: " + force + " Walljump force");
+        RB.AddForce(force, ForceMode2D.Impulse);
+        ReleaseWall(true);
+
+    }
+
+    /*
     void UpdateWallStatus()
     {
         if(!IsOnFloor()) //if not on floor and inputting dir
@@ -381,12 +477,12 @@ public class PlayerMovementComponent : MonoBehaviour
                 {
                     if (_wallClingDurationTimer >= _wallClingDuration && _wallState != EWallState.NULL) ReleaseWall();
                 }
-                _wallClingCoyoteTimer = 0;
+                _onWallTimer = _coyoteTime * _wallClingCoyoteTimeMod;
             }
             else
             {
                 //Debug.Log("No Wall");
-                if (_wallClingCoyoteTimer >= _coyoteTime * _wallClingCoyoteTimeMod) ReleaseWall();
+                if (_onWallTimer < 0) ReleaseWall();
             }
         }
     }
@@ -416,6 +512,7 @@ public class PlayerMovementComponent : MonoBehaviour
     void ReleaseWall()
     {
         _wallState = EWallState.NULL;
+        _onWallTimer = 0;
         //Debug.Log("Release the wall");
     }
 
@@ -427,7 +524,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         //Debug.Log("Check Wall");
 
-        //Using bounding check to get feet and head pos -> used in ledge detect
+        //TODO:ledge detect
         Bounds playerBounds = Player.Instance.GetComponent<Collider2D>().bounds;
         Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
         Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
@@ -456,17 +553,20 @@ public class PlayerMovementComponent : MonoBehaviour
         Debug.Log("Land Wall");
 
         _lastWallLanded = _currentWallHit.transform.gameObject;
-
-        if (_lastWallDeparted != _lastWallLanded)
+        
+        if (_lastWallDeparted != _lastWallLanded) //if new wall
         {
-            _wallJumpCdTimer = _wallJumpCooldown;
+            //_wallJumpCdTimer = _wallJumpCooldown; //Reset CD timer
         }
-        onPlayerLandWall?.Invoke();
+
         JumpCounter = Mathf.Clamp(JumpCounter - _wallClingJumpRefund, 0, MaxJumps);
+        onPlayerLandWall?.Invoke();
         _bShortHop = false;
+        bCanJump = true;
         _wallJumpDurationTimer = _wallJumpDuration;
     }
 
+    */
     #endregion
 
     #region GroundCheck
@@ -479,7 +579,7 @@ public class PlayerMovementComponent : MonoBehaviour
                 OnLand();
             }
             _bWasGrounded = true;
-            _groundedTimer = _coyoteTime;
+            _lastGroundedTimer = _coyoteTime;
             return;
         }
         else
@@ -490,7 +590,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
     public bool IsOnFloor()
     {
-        return _groundedTimer > 0;
+        return _lastGroundedTimer > 0;
     }
 
     private bool RaycastToGround(bool castLeftEdge)
@@ -509,15 +609,17 @@ public class PlayerMovementComponent : MonoBehaviour
     
     private void OnLand()
     {
-        Debug.Log("Landed");
+        //Debug.Log("Landed");
         onPlayerLand?.Invoke();
 
         //Reset Values on landing
         JumpCounter = 0;
         _bShortHop = false;
+
         _wallState = EWallState.NULL;
+        _currentWall = null;
+        _previousWall = null;
         _wallJumpDurationTimer = _wallJumpDuration;
-        _wallJumpCdTimer = _wallJumpCooldown;
     }
     #endregion
 }

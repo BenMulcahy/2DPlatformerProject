@@ -646,7 +646,7 @@ MonoBehaviour:
     m_Bits: 8
   _wallJumpCooldown: 0.8
   _wallJumpForce: {x: 20, y: 35}
-  _wallJumpDuration: 0.15
+  _wallJumpDuration: 0.05
   _wallJumpToRunLerp: 0.5
   _wallSlideSpeed: -8
   _wallSlideDecelleration: 2
