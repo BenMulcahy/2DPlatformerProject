@@ -5,9 +5,7 @@ public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Add Edge Detect so you dont just bonk
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
-    //TODO: Allow for double jumping
     //TODO: Option to prevent downward motion during Coyote Time?
-    //TODO: Add setting for init jump being from grounded or not
 
     #region Enums
     enum EWallState
@@ -40,23 +38,25 @@ public class PlayerMovementComponent : MonoBehaviour
     //public bool bIsOnFloor { get; private set; }
 
     [Header("--- Walk/Run ---")][Space(5)]
-    [SerializeField] float _walkSpeed = 15.0f;
-    [SerializeField] float _sprintSpeed = 20.0f;
+    [SerializeField] float _walkSpeed = 18.0f;
+    [SerializeField] float _sprintSpeed = 22.0f;
     public bool bIsSprinting { get; private set; }
     [Header("Accel/Deccel")]
-    [SerializeField] float _accelleration = 2.5f; //Time Aprx to get to full speed
+    [SerializeField] float _accelleration = 2f; //Time Aprx to get to full speed
     [SerializeField] float _decelleration = 4f; //Time Aprx to stop
 
     [Header("--- Jumping ---")][Space(5)]
-    [SerializeField] float _jumpHeight = 4.0f;
+    [SerializeField] float _jumpHeight = 6.0f;
     public int MaxJumps = 1;
-    [SerializeField][Range(0.01f, 2f)] float _airAccellerationMod = 1.25f; //multiplied to base accel
-    [SerializeField][Range(0.01f, 2f)] float _airDeccelleraionMod = 0.8f; //multipied to base deccel
+    [Tooltip("If MaxJumps > 1, will allow for extra jumps to be used as init jump if in air")]
+    [SerializeField] bool _bRequireGroundedJump = true;
+    [SerializeField][Range(0.01f, 2f)] float _airAccellerationMod = 1.2f; //multiplied to base accel
+    [SerializeField][Range(0.01f, 2f)] float _airDeccelleraionMod = 0.33f; //multipied to base deccel
     [Header("Jump Apex 'Hang'")]
-    [SerializeField][Range(0.1f, 1f)] float _jumpApexGravityModifier = 0.4f;
-    [SerializeField] float _jumpHangThreshold = 1.5f;
-    [SerializeField] float _jumpHangAccelerationMod = 1.2f;
-    [SerializeField] float _jumpHangMaxSpeedMod = 1.1f;
+    [SerializeField][Range(0.1f, 1f)] float _jumpApexGravityModifier = 0.3f;
+    [SerializeField] float _jumpHangThreshold = 1.75f;
+    [SerializeField] float _jumpHangAccelerationMod = 1.45f;
+    [SerializeField] float _jumpHangMaxSpeedMod = 1.6f;
     public float MaxFallSpeed = 45.0f;
     public bool bCanJump { get; private set; }
     public int JumpCounter { get; private set; }
@@ -72,8 +72,8 @@ public class PlayerMovementComponent : MonoBehaviour
 
     [Header("Wall Jump")]
     [SerializeField][Tooltip("Only affects repeat jumps from same wall")] float _wallJumpCooldown = 1.0f; //See tooltip
-    [SerializeField] Vector2 _wallJumpForce = new Vector2(30f, 15f);
-    [SerializeField] float _wallJumpDuration = 0.8f; //How long wall jump lasts before giving full control to run
+    [SerializeField] Vector2 _wallJumpForce = new Vector2(20f, 35f);
+    [SerializeField] float _wallJumpDuration = 0.05f; //How long wall jump lasts before giving full control to run
     [SerializeField] float _wallJumpToRunLerp = 0.5f; //lerp to return control to running input during walljump
     RaycastHit2D _currentWallHit;
     EWallState _wallState = EWallState.NULL;
@@ -85,13 +85,13 @@ public class PlayerMovementComponent : MonoBehaviour
     [Header("--- Gravity Scales ---")][Space(5)]
     [SerializeField] float _defaultGravityScale = 10.0f;
     [SerializeField] float _fallingGravityScale = 12.0f;
-    [SerializeField] float _shortHopGravityScale = 18.0f;
+    [SerializeField] float _shortHopGravityScale = 16.0f;
     [SerializeField] float _wallSlideUpGravityScale = 18.0f; //Used to decel the player when sliding up a wall
 
     [Header("--- Timers ---")][Space(5)]
-    [SerializeField] float _jumpFullPressWindowTime = 0.33f;
-    [SerializeField] float _coyoteTime = 0.05f;
-    [SerializeField] float _wallClingCoyoteTimeMod = 1.25f;
+    [SerializeField] float _jumpFullPressWindowTime = 0.42f;
+    [SerializeField] float _coyoteTime = 0.16f;
+    [SerializeField] float _wallClingCoyoteTimeMod = 1.0f;
     float _jumpPressedTimer;
     float _wallJumpDurationTimer;
     float _wallJumpCdTimer;
@@ -143,8 +143,31 @@ public class PlayerMovementComponent : MonoBehaviour
         UpdateGroundStatus();
         UpdateWallStatus();
 
+
+        //Allow for player to use double jump as late single jump if out of Coyote time
+        if(_bRequireGroundedJump && MaxJumps > 1 && JumpCounter == 0)
+        {
+            if (_lastGroundedTimer < 0) JumpCounter = 1;
+        }
+
+        if (JumpCounter == 0) //First Jump
+        {
+            if ((_bRequireGroundedJump ? IsOnFloor() : true) || _wallState != EWallState.NULL) bCanJump = true;
+            else bCanJump = false;
+        }
+        else
+        {
+            if (JumpCounter < MaxJumps || _wallState != EWallState.NULL) bCanJump = true; //TODO: (Low Prio) add cd between jumps?
+            else bCanJump = false;
+        }
+
+        //OLD
+        /*
         if (IsOnFloor() || _wallState != EWallState.NULL) bCanJump = true;
         else bCanJump = false;
+        */
+
+        print("Can Jump: " + bCanJump);
 
     }
     #endregion
@@ -312,8 +335,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
     void DoJump()
     {
-        //Jump
-        Debug.Log("Jumpy");
+        //Debug.Log("Jump!");
         _lastGroundedTimer = _coyoteTime;
         RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
         RB.gravityScale = _defaultGravityScale;
