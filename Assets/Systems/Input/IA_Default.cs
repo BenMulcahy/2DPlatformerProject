@@ -158,7 +158,7 @@ public partial class @IA_Default: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""861574a1-e71c-4659-9f7e-a5e8d77b0816"",
-                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""path"": ""<Gamepad>/buttonWest"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

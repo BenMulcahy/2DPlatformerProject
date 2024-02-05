@@ -10,7 +10,6 @@ public class PlayerFX : MonoBehaviour
 {
     Player _player;
 
-
     [Header("--- Code based Animations ---")]
     [SerializeField] bool bUseCodeBasedAnims = true;
     [Header("Squash")]
@@ -23,6 +22,7 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] float _landingCamShakeDuration = 0.2f;
     [SerializeField] float _landingCamShakeIntensityMod = 1f;
 
+    #region Setup
     private void Start()
     {
         _player = Player.Instance;
@@ -33,6 +33,9 @@ public class PlayerFX : MonoBehaviour
         PlayerMovementComponent.onPlayerLand += PlayerLandFX;
         PlayerMovementComponent.onPlayerJump += PlayerJumpFX;
         PlayerMovementComponent.onPlayerMove += PlayerMovementFX;
+        PlayerMovementComponent.onPlayerWallJump += PlayerWallJumpFX;
+        PlayerMovementComponent.onPlayerLandWall += PlayerWallLandFX;
+        PlayerMovementComponent.onPlayerWallSlide += PlayerWallSlideFX;
     }
 
     private void OnDisable()
@@ -40,8 +43,13 @@ public class PlayerFX : MonoBehaviour
         PlayerMovementComponent.onPlayerLand -= PlayerLandFX;
         PlayerMovementComponent.onPlayerJump -= PlayerJumpFX;
         PlayerMovementComponent.onPlayerMove -= PlayerMovementFX;
+        PlayerMovementComponent.onPlayerWallJump -= PlayerWallJumpFX;
+        PlayerMovementComponent.onPlayerLandWall -= PlayerWallLandFX;
+        PlayerMovementComponent.onPlayerWallSlide -= PlayerWallSlideFX;
     }
+    #endregion
 
+    #region bound delegate functions
     private void PlayerLandFX()
     {
         if (bUseCodeBasedAnims)
@@ -49,6 +57,21 @@ public class PlayerFX : MonoBehaviour
             StartCoroutine(Squash());
         }
         CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod,_landingCamShakeDuration,_playerLandShake);
+    }
+
+    private void PlayerWallJumpFX()
+    {
+
+    }
+
+    private void PlayerWallLandFX()
+    {
+
+    }
+
+    private void PlayerWallSlideFX(Vector2 playerVelocity)
+    {
+
     }
 
     private void PlayerJumpFX()
@@ -67,6 +90,7 @@ public class PlayerFX : MonoBehaviour
     {
 
     }
+    #endregion
 
     IEnumerator Squash()
     {

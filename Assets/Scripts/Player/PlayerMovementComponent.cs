@@ -1,7 +1,5 @@
-using System.Collections;
 using UnityEngine;
 using System;
-using System.Collections.Generic;
 
 public class PlayerMovementComponent : MonoBehaviour
 {
@@ -32,6 +30,9 @@ public class PlayerMovementComponent : MonoBehaviour
 
     public delegate void OnPlayerMove(Vector2 playerVelocity);
     public static event OnPlayerMove onPlayerMove;
+
+    public delegate void OnPlayerWallSlide(Vector2 playerVelocity);
+    public static event OnPlayerWallSlide onPlayerWallSlide;
     #endregion
 
     #region Variables
@@ -42,6 +43,8 @@ public class PlayerMovementComponent : MonoBehaviour
     [Header("--- Walk/Run ---")][Space(5)]
     [SerializeField] float _walkSpeed = 18.0f;
     [SerializeField] float _sprintSpeed = 22.0f;
+    [SerializeField][Tooltip("(When in air)")] bool _bConserveMomentum = true;
+    [SerializeField] float _runningSpeedLerp = 1f;//Smoothing when changing speed/direction
     public bool bIsSprinting { get; private set; }
     [Header("Accel/Deccel")]
     [SerializeField] float _accelleration = 2f; //Time Aprx to get to full speed
@@ -69,10 +72,9 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _wallClingDuration = 0.33f; // time before letting go of wall if no input recieved
     [SerializeField] int _wallClingJumpRefund = 1;
     [SerializeField] LayerMask _wallMask;
-    [SerializeField] ContactFilter2D _wallFilter;
+    bool _bOnWall;
     GameObject _previousWall;
     GameObject _currentWall;
-    List<Collider2D> _wallColliders = new List<Collider2D>();
 
     [Header("Wall Jump")]
     [SerializeField][Tooltip("Only affects repeat jumps from same wall")] float _wallJumpCooldown = 1.0f; //See tooltip
@@ -215,6 +217,10 @@ public class PlayerMovementComponent : MonoBehaviour
             targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _wallJumpToRunLerp);
             //targetSpeed = 0;
         }
+        else
+        {
+            targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _runningSpeedLerp);
+        }
 
         //Calculate accel and deccel forces to apply
         float accelForce = ((1 / Time.fixedDeltaTime) * _accelleration) / (bIsSprinting ? _sprintSpeed : _walkSpeed);
@@ -230,6 +236,14 @@ public class PlayerMovementComponent : MonoBehaviour
             accelRate *= _jumpHangAccelerationMod;
             targetSpeed *= _jumpHangMaxSpeedMod;
         }
+
+
+        //Momentum Conservation
+        if (_bConserveMomentum && Mathf.Abs(RB.velocity.x) > Mathf.Abs(targetSpeed) && Mathf.Sign(RB.velocity.x) == Mathf.Sign(targetSpeed) && Mathf.Abs(targetSpeed) > 0.01f && !IsOnFloor())
+        {
+            accelRate = 0;
+        }
+
 
         float movementVal = (targetSpeed - RB.velocity.x) * accelRate;
         RB.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
@@ -317,10 +331,11 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             if (IsNearWall()) //Hits wall
             {
-                if (!_currentWall) OnWallLand();
+                if (!_bOnWall) OnWallLand();
                 _lastOnWallTimer = _coyoteTime * _wallClingCoyoteTimeMod; //Reset timer;
+                _bOnWall = true;
 
-                if(Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>() != 0)
+                if (Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>() != 0)
                 {
                     WallSlide();
                 }
@@ -331,7 +346,8 @@ public class PlayerMovementComponent : MonoBehaviour
             }
             else //No wall
             {
-                if (_lastOnWallTimer < 0 && _wallState != EWallState.NULL) ReleaseWall(); 
+                if (_lastOnWallTimer < 0 && _wallState != EWallState.NULL) ReleaseWall();
+                _bOnWall = false;
             }
         }
     }
@@ -345,6 +361,9 @@ public class PlayerMovementComponent : MonoBehaviour
             float movement = speedDif * _wallSlideDecelleration;
             movement = Mathf.Clamp(movement, -Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime), Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime));
             RB.AddForce(movement * Vector2.up);
+
+            onPlayerWallSlide?.Invoke(RB.velocity);
+
         }
     }
 
@@ -352,7 +371,6 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         //Debug.Log("Landed on wall!");
         _wallState = _currentWallHit.normal.x < 0 ? EWallState.onRightWall : EWallState.onLeftWall; //Set wall state
-
         _currentWall = _currentWallHit.transform.gameObject;
         if (_previousWall != _currentWall) _wallJumpCdTimer = 0;
 
@@ -387,23 +405,19 @@ public class PlayerMovementComponent : MonoBehaviour
 
         bool castToRight = RB.velocityX > 0.0 ? bIsMovingRight : Player.Instance.bIsRightInput;
 
-        /*
-        _wallColliders.Clear();
-        int colCount = RB.GetContacts(_wallFilter, _wallColliders);
-        if(colCount > 0)
-        {
-            Debug.Log(transform.InverseTransformPoint(_wallColliders[0].ClosestPoint(transform.position)));
-        }
-        */ //TODO: Move to using collider? Or make raycast more robust
-
         //Cast from head and feet in current input direction
-        _currentWallHit = Physics2D.Linecast(headPos, castToRight ? headPos + Vector2.right * 0.85f: headPos + Vector2.left * 0.85f, _wallMask);
+        _currentWallHit = Physics2D.Linecast(headPos, castToRight ? headPos + Vector2.right * 0.85f : headPos + Vector2.left * 0.85f, _wallMask);
         RaycastHit2D feetHit = Physics2D.Linecast(feetPos, castToRight ? feetPos + Vector2.right * 0.85f : feetPos + Vector2.left * 0.85f, _wallMask);
 
         Debug.DrawLine(headPos, castToRight ? headPos + Vector2.right * 0.85f : headPos + Vector2.left * 0.85f, Color.green);
         Debug.DrawLine(feetPos, castToRight ? feetPos + Vector2.right * 0.85f : feetPos + Vector2.left * 0.85f, Color.red);
 
         if (_currentWallHit && feetHit) return true;
+
+        //safety net for if player has started to change dir
+        _currentWallHit = Physics2D.Linecast(headPos, !castToRight ? headPos + Vector2.right * 0.85f : headPos + Vector2.left * 0.85f, _wallMask);
+        feetHit = Physics2D.Linecast(feetPos, !castToRight ? feetPos + Vector2.right * 0.85f : feetPos + Vector2.left * 0.85f, _wallMask);
+        if(_currentWallHit && feetHit) return true;
         else return false;
     }
 
@@ -417,10 +431,9 @@ public class PlayerMovementComponent : MonoBehaviour
 
         RB.velocity = new(RB.velocity.x, 0); //kill all downward momentum
 
-        Debug.Log("Apply: " + force + " Walljump force");
+        //Debug.Log("Apply: " + force + " Walljump force");
         RB.AddForce(force, ForceMode2D.Impulse);
         ReleaseWall(true);
-
     }
     #endregion
 
