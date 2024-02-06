@@ -203,11 +203,12 @@ public class PlayerMovementComponent : MonoBehaviour
 
     #endregion
 
+
     #region Walk/Running
     private void MovementX()
     {
         /*   Movement   */
-        float movementInput = Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>();
+        float movementInput = Player.Instance.PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>();
 
         //Calculate Accel and target speed
         float targetSpeed = movementInput * (bIsSprinting ? _sprintSpeed : _walkSpeed);
@@ -335,7 +336,7 @@ public class PlayerMovementComponent : MonoBehaviour
                 _lastOnWallTimer = _coyoteTime * _wallClingCoyoteTimeMod; //Reset timer;
                 _bOnWall = true;
 
-                if (Player.Instance.PlayerInputActions.Gameplay.Movement.ReadValue<float>() != 0)
+                if (Player.Instance.PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>() != 0)
                 {
                     WallSlide();
                 }

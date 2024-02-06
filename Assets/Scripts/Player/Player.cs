@@ -1,11 +1,14 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
-    public IA_Default PlayerInputActions { get; private set; }
+    //public IA_Default PlayerInputActions { get; private set; }
     public PlayerMovementComponent playerMovement { get; private set; }
+    public PlayerInput PlayerInputComponent { get; private set; }
+
 
     [Header("--- Input Buffers ---")]
     [SerializeField] float _jumpInputBuffer = 0.02f;
@@ -19,26 +22,27 @@ public class Player : MonoBehaviour
         else Destroy(this);
 
         playerMovement = GetComponent<PlayerMovementComponent>();
-
     }
 
     private void OnEnable()
     {
         SetupInputs(true);
-        PlayerInputActions.Enable();
+        //PlayerInputActions.Enable();
+        PlayerInputComponent.actions.Enable();
     }
 
     private void OnDisable()
     {
         SetupInputs(false);
-        PlayerInputActions.Disable();
+        //PlayerInputActions.Disable();
+        PlayerInputComponent.actions.Disable();
     }
 
     private void Update()
     {
         //Check for L/R Input
-        if (PlayerInputActions.Gameplay.Movement.ReadValue<float>() > 0) bIsRightInput = true;
-        else if (PlayerInputActions.Gameplay.Movement.ReadValue<float>() < 0) bIsRightInput = false;
+        if (PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>() > 0) bIsRightInput = true;
+        else if (PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>() < 0) bIsRightInput = false;
 
         CheckInputBuffers();
     }
@@ -48,37 +52,42 @@ public class Player : MonoBehaviour
 
     void SetupInputs(bool enabled)
     {
-        if(PlayerInputActions == null) PlayerInputActions = new IA_Default(); //Create input action mapping
+        //if(PlayerInputActions == null) PlayerInputActions = new IA_Default(); //Create input action mapping
+        if (PlayerInputComponent == null) PlayerInputComponent = GetComponent<PlayerInput>();
 
         if (enabled)
         {
             //Move
-            PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
+            //PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
+            PlayerInputComponent.actions.FindAction("Movement").performed += OnMovementInput;
 
             //Jump
-            PlayerInputActions.Gameplay.Jump.performed += OnJumpInput;
-            PlayerInputActions.Gameplay.Jump.canceled += OnJumpCancelled;
+            PlayerInputComponent.actions.FindAction("Jump").performed += OnJumpInput;
+            PlayerInputComponent.actions.FindAction("Jump").canceled += OnJumpCancelled;
+
 
             //Sprinting
-            PlayerInputActions.Gameplay.Sprint.performed += OnSprintInput;
-            PlayerInputActions.Gameplay.Sprint.canceled += OnSprintInputCancel;
+            PlayerInputComponent.actions.FindAction("Sprint").performed += OnSprintInput;
+            PlayerInputComponent.actions.FindAction("Sprint").canceled += OnSprintInputCancel;
         }
 
         if (!enabled)
         {
             //Move
-            PlayerInputActions.Gameplay.Movement.performed -= OnMovementInput;
+            PlayerInputComponent.actions.FindAction("Movement").performed -= OnMovementInput;
 
             //Jump
-            PlayerInputActions.Gameplay.Jump.performed -= OnJumpInput;
-            PlayerInputActions.Gameplay.Jump.canceled -= OnJumpCancelled;
+            PlayerInputComponent.actions.FindAction("Jump").performed -= OnJumpInput;
+            PlayerInputComponent.actions.FindAction("Jump").canceled -= OnJumpCancelled;
+
 
             //Sprinting
-            PlayerInputActions.Gameplay.Sprint.performed -= OnSprintInput;
-            PlayerInputActions.Gameplay.Sprint.canceled -= OnSprintInputCancel;
+            PlayerInputComponent.actions.FindAction("Sprint").performed -= OnSprintInput;
+            PlayerInputComponent.actions.FindAction("Sprint").canceled -= OnSprintInputCancel;
         }
 
     }
+
 
     /* SPRINTING - Start */
     private void OnSprintInput(InputAction.CallbackContext context)
@@ -130,7 +139,7 @@ public class Player : MonoBehaviour
                 _bWantsToJump = false;
                 _jumpInputBufferTimer = 0;
                 if (playerMovement.bCanJump) playerMovement.OnJumpPerformed();
-                if (!PlayerInputActions.Gameplay.Jump.IsPressed())
+                if (!PlayerInputComponent.actions.FindAction("Jump").IsPressed())
                 {
                     //If short hop from buffer
                     //Debug.Log("Short hop buffer protect");

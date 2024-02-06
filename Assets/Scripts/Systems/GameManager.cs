@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    #region Delegates/Events
+    public delegate void OnGamePause();
+    public static event OnGamePause onGamePause;
+    #endregion
+
     public static GameManager Instance { get; private set; }
     [SerializeField][Range(0,5)] float EditorTimeScale = 1f;
-
+    
     Vector2 playerStartPos;
 
     private void Awake()
@@ -31,4 +36,18 @@ public class GameManager : MonoBehaviour
         //DEBUG STUFF!!!! TODO:REMOVE FOR FINAL BUILD!!!!
         if (Input.GetKeyDown(KeyCode.R)) Player.Instance.transform.position = playerStartPos;
     }
+
+
+    public void PauseGame()
+    {
+        onGamePause?.Invoke();
+        Debug.Log("Pause!");
+    }
+
+    public void QuitGame()
+    {
+        Debug.LogWarning("Game Quit Called from Game Manager");
+        Application.Quit();
+    }
+
 }
