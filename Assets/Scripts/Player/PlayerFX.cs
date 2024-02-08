@@ -22,6 +22,14 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] float _landingCamShakeDuration = 0.2f;
     [SerializeField] float _landingCamShakeIntensityMod = 1f;
 
+    /*
+    [Header("--- Controller Rumble ---")]
+    [SerializeField] float _landingRumbleDuration = 0.1f;
+    [SerializeField] float _landingRumbleIntensity = 0.8f;
+    [SerializeField] float _wallLandRumbleDuration = 0.1f;
+    [SerializeField] float _wallLandRumbleIntensity = 0.6f;
+    */
+
     #region Setup
     private void Start()
     {
@@ -52,11 +60,9 @@ public class PlayerFX : MonoBehaviour
     #region bound delegate functions
     private void PlayerLandFX()
     {
-        if (bUseCodeBasedAnims)
-        {
-            StartCoroutine(Squash());
-        }
+        if (bUseCodeBasedAnims) StartCoroutine(Squash());
         CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod,_landingCamShakeDuration,_playerLandShake);
+        //InputManager.Instance.ControllerRumble(_landingRumbleIntensity, _landingRumbleDuration);
     }
 
     private void PlayerWallJumpFX()
@@ -66,7 +72,7 @@ public class PlayerFX : MonoBehaviour
 
     private void PlayerWallLandFX()
     {
-
+        //InputManager.Instance.ControllerRumble(_wallLandRumbleIntensity, _wallLandRumbleDuration);
     }
 
     private void PlayerWallSlideFX(Vector2 playerVelocity)
@@ -125,5 +131,6 @@ public class PlayerFX : MonoBehaviour
         transform.localScale = Vector2.one;
         transform.localPosition = Vector2.zero;
     }
+
 
 }

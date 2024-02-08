@@ -106,6 +106,8 @@ MonoBehaviour:
   _playerLandShake: {fileID: 11400000, guid: 1f2229bb9ff6d49f6938e12f29f57115, type: 2}
   _landingCamShakeDuration: 0.2
   _landingCamShakeIntensityMod: 1
+  _landingRumbleDuration: 0.12
+  _landingRumbleIntensity: 0.8
 --- !u!1 &8441534237938971635
 GameObject:
   m_ObjectHideFlags: 0
@@ -117,6 +119,7 @@ GameObject:
   - component: {fileID: 5874998428455151790}
   - component: {fileID: 447570996558364454}
   - component: {fileID: 6321016550228298720}
+  - component: {fileID: 6136895511751352337}
   - component: {fileID: 9213879135022504012}
   - component: {fileID: 2294392921548827685}
   - component: {fileID: 3852575668133921778}
@@ -198,6 +201,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _jumpInputBuffer: 0.33
+--- !u!114 &6136895511751352337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8441534237938971635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d6ed8f09f518874aaa9f6cb9699fd6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxHealth: 100
 --- !u!114 &9213879135022504012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,7 +228,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _walkSpeed: 18
   _sprintSpeed: 23
-  _bConserveMomentum: 1
+  _bConserveMomentum: 0
   _runningSpeedLerp: 1
   _accelleration: 2
   _decelleration: 5

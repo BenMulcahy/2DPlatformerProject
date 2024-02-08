@@ -5,6 +5,11 @@ using UnityEngine.InputSystem;
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance;
+    public string InputType { get; private set; }
+
+    [Header("--- Rumble ---")]
+    [SerializeField] float _rumbleLowFreq = 0.8f;
+    [SerializeField] float _rumbleHighFreq = 1f;
 
     private void Awake()
     {
@@ -30,6 +35,7 @@ public class InputManager : MonoBehaviour
     private void OnPlayerControlChanged(PlayerInput input)
     {
         Debug.Log("Controls changed, now using: " + input.currentControlScheme);
+        InputType = input.currentControlScheme;
     }
 
     private void OnLayoutChanged(string arg1, InputControlLayoutChange change)
@@ -45,5 +51,18 @@ public class InputManager : MonoBehaviour
             //TODO: Pause Game
             GameManager.Instance.PauseGame();
         }
+    }
+
+
+    public void ControllerRumble(float intensity, float duration)
+    {
+        if (InputType != "Gamepad") return;
+        Gamepad.current.SetMotorSpeeds(_rumbleLowFreq * intensity, _rumbleHighFreq * intensity);
+        Invoke(nameof(StopRumble), duration);
+    }
+
+    void StopRumble()
+    {
+        Gamepad.current.SetMotorSpeeds(0,0);
     }
 }

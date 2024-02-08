@@ -2,13 +2,15 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(HealthComponent))]
+[RequireComponent(typeof(PlayerMovementComponent))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
     //public IA_Default PlayerInputActions { get; private set; }
     public PlayerMovementComponent playerMovement { get; private set; }
     public PlayerInput PlayerInputComponent { get; private set; }
-
 
     [Header("--- Input Buffers ---")]
     [SerializeField] float _jumpInputBuffer = 0.02f;
@@ -148,6 +150,5 @@ public class Player : MonoBehaviour
             }
         }
     }
-   
     #endregion
 }
