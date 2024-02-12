@@ -106,8 +106,8 @@ MonoBehaviour:
   _playerLandShake: {fileID: 11400000, guid: 1f2229bb9ff6d49f6938e12f29f57115, type: 2}
   _landingCamShakeDuration: 0.2
   _landingCamShakeIntensityMod: 1
-  _landingRumbleDuration: 0.12
-  _landingRumbleIntensity: 0.8
+  _damageRumbleDuration: 0.3
+  _damageRumbleIntensity: 3
 --- !u!1 &8441534237938971635
 GameObject:
   m_ObjectHideFlags: 0

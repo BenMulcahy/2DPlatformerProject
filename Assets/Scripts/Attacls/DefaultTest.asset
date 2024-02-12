@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6c3af4855dcd3947b08e52004ae8697, type: 3}
+  m_Name: DefaultTest
+  m_EditorClassIdentifier: 
+  AttackType: 0
+  Damage: 5
+  Duration: 0.5
+  Cooldown: 0.8
+  IFrameDuration: 0
+  Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}

@@ -8,7 +8,6 @@ using Cinemachine;
 
 public class PlayerFX : MonoBehaviour
 {
-    Player _player;
 
     [Header("--- Code based Animations ---")]
     [SerializeField] bool bUseCodeBasedAnims = true;
@@ -22,20 +21,13 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] float _landingCamShakeDuration = 0.2f;
     [SerializeField] float _landingCamShakeIntensityMod = 1f;
 
-    /*
+    
     [Header("--- Controller Rumble ---")]
-    [SerializeField] float _landingRumbleDuration = 0.1f;
-    [SerializeField] float _landingRumbleIntensity = 0.8f;
-    [SerializeField] float _wallLandRumbleDuration = 0.1f;
-    [SerializeField] float _wallLandRumbleIntensity = 0.6f;
-    */
+    [SerializeField] float _damageRumbleDuration = 0.3f;
+    [SerializeField] float _damageRumbleIntensity = 3f;
+    
 
     #region Setup
-    private void Start()
-    {
-        _player = Player.Instance;
-    }
-
     private void OnEnable()
     {
         PlayerMovementComponent.onPlayerLand += PlayerLandFX;
@@ -44,6 +36,7 @@ public class PlayerFX : MonoBehaviour
         PlayerMovementComponent.onPlayerWallJump += PlayerWallJumpFX;
         PlayerMovementComponent.onPlayerLandWall += PlayerWallLandFX;
         PlayerMovementComponent.onPlayerWallSlide += PlayerWallSlideFX;
+        Player.Instance.GetComponent<HealthComponent>().onTakeDamage += PlayerTakeDamageFX;
     }
 
     private void OnDisable()
@@ -54,6 +47,7 @@ public class PlayerFX : MonoBehaviour
         PlayerMovementComponent.onPlayerWallJump -= PlayerWallJumpFX;
         PlayerMovementComponent.onPlayerLandWall -= PlayerWallLandFX;
         PlayerMovementComponent.onPlayerWallSlide -= PlayerWallSlideFX;
+        Player.Instance.GetComponent<HealthComponent>().onTakeDamage -= PlayerTakeDamageFX;
     }
     #endregion
 
@@ -90,6 +84,11 @@ public class PlayerFX : MonoBehaviour
             transform.localScale = Vector2.one;
             transform.localPosition = Vector2.zero;
         }
+    }
+
+    private void PlayerTakeDamageFX()
+    {
+        InputManager.Instance.ControllerRumble(_damageRumbleIntensity,_damageRumbleDuration);
     }
 
     private void PlayerMovementFX(Vector2 playerVelocity)

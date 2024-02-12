@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
     {
         //DEBUG STUFF!!!! TODO:REMOVE FOR FINAL BUILD!!!!
         if (Input.GetKeyDown(KeyCode.R)) Player.Instance.transform.position = playerStartPos;
+        if (Input.GetKeyDown(KeyCode.O)) Player.Instance.GetComponent<HealthComponent>().TakeDamage(5f);
     }
 
 
