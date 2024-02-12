@@ -8,15 +8,31 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
-    //public IA_Default PlayerInputActions { get; private set; }
     public PlayerMovementComponent playerMovement { get; private set; }
     public PlayerInput PlayerInputComponent { get; private set; }
+
+    #region Delegates and Events
+    public delegate void OnPlayerAttack();
+    public static event OnPlayerAttack onPlayerAttack;
+    #endregion
+
+    #region Vars
+    [Header("--- Attacking ---")]
+    public bool bAttackEnabled = true;
+    [SerializeField] Attack _attackObject;
+
 
     [Header("--- Input Buffers ---")]
     [SerializeField] float _jumpInputBuffer = 0.02f;
     float _jumpInputBufferTimer;
     bool _bWantsToJump = false;
-    public bool bIsRightInput { get; private set; }
+
+    [SerializeField] float _atkInputBuffer = 0.01f;
+    float _atkBufferTimer;
+    bool _bWantsToAttack = false;
+
+    [HideInInspector] public bool bIsRightInput { get; private set; }
+    #endregion
 
     private void Awake()
     {
@@ -26,18 +42,24 @@ public class Player : MonoBehaviour
         playerMovement = GetComponent<PlayerMovementComponent>();
     }
 
+    private void Start()
+    {
+        if (!_attackObject) _attackObject = GetComponentInChildren<Attack>();
+    }
+
     private void OnEnable()
     {
         SetupInputs(true);
-        //PlayerInputActions.Enable();
         PlayerInputComponent.actions.Enable();
+        GetComponent<HealthComponent>().onOutOfHealth += OutOfHealth;
     }
+
 
     private void OnDisable()
     {
         SetupInputs(false);
-        //PlayerInputActions.Disable();
         PlayerInputComponent.actions.Disable();
+        GetComponent<HealthComponent>().onOutOfHealth -= OutOfHealth;
     }
 
     private void Update()
@@ -54,13 +76,11 @@ public class Player : MonoBehaviour
 
     void SetupInputs(bool enabled)
     {
-        //if(PlayerInputActions == null) PlayerInputActions = new IA_Default(); //Create input action mapping
         if (PlayerInputComponent == null) PlayerInputComponent = GetComponent<PlayerInput>();
 
         if (enabled)
         {
             //Move
-            //PlayerInputActions.Gameplay.Movement.performed += OnMovementInput;
             PlayerInputComponent.actions.FindAction("Movement").performed += OnMovementInput;
 
             //Jump
@@ -71,6 +91,9 @@ public class Player : MonoBehaviour
             //Sprinting
             PlayerInputComponent.actions.FindAction("Sprint").performed += OnSprintInput;
             PlayerInputComponent.actions.FindAction("Sprint").canceled += OnSprintInputCancel;
+
+            //Attack
+            PlayerInputComponent.actions.FindAction("Attack").performed += OnAttackInput;
         }
 
         if (!enabled)
@@ -86,10 +109,31 @@ public class Player : MonoBehaviour
             //Sprinting
             PlayerInputComponent.actions.FindAction("Sprint").performed -= OnSprintInput;
             PlayerInputComponent.actions.FindAction("Sprint").canceled -= OnSprintInputCancel;
+
+            //Attack
+            PlayerInputComponent.actions.FindAction("Attack").performed -= OnAttackInput;
+
         }
 
     }
 
+    /* ATTACK */
+    private void OnAttackInput(InputAction.CallbackContext context)
+    {
+        if (!bAttackEnabled) return;
+
+        if (!_attackObject.CanAttack())
+        {
+            _bWantsToAttack = true;
+            _atkBufferTimer = _atkInputBuffer;
+        }
+        else
+        {
+            //Do Attack
+            _attackObject.DoAttack();
+            onPlayerAttack?.Invoke();
+        }
+    }
 
     /* SPRINTING - Start */
     private void OnSprintInput(InputAction.CallbackContext context)
@@ -117,7 +161,7 @@ public class Player : MonoBehaviour
             _bWantsToJump = true;
             _jumpInputBufferTimer = _jumpInputBuffer; 
         }
-        else if (playerMovement.bCanJump) playerMovement.OnJumpPerformed();
+        else if (playerMovement.bCanJump) playerMovement.OnJumpPerformed(); //Dont need to elif here?
     }
 
     /* JUMP - Stop */
@@ -149,6 +193,31 @@ public class Player : MonoBehaviour
                 }
             }
         }
+
+        //Attack input buffer
+        if (_bWantsToAttack)
+        {
+            if (_atkBufferTimer > 0 && !_attackObject.CanAttack())
+            {
+                _atkBufferTimer -= Time.deltaTime;
+            }
+            else
+            {
+                _bWantsToAttack = false;
+                _atkBufferTimer = 0;
+                if (bAttackEnabled && _attackObject.CanAttack()) _attackObject.DoAttack();
+            }
+        }
     }
     #endregion
+
+    #region Health
+    protected virtual void OutOfHealth()
+    {
+        throw new NotImplementedException();
+    }
+
+
+    #endregion
+
 }

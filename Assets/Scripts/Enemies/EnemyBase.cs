@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,15 +6,21 @@ using UnityEngine;
 [RequireComponent(typeof(HealthComponent))]
 public class EnemyBase : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private void OnEnable()
     {
-        
+        GetComponent<HealthComponent>().onOutOfHealth += Die;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDisable()
     {
-        
+        GetComponent<HealthComponent>().onOutOfHealth -= Die;
+    }
+
+    /// <summary>
+    /// When overidden, call base after implementing overridden code
+    /// </summary>
+    protected virtual void Die()
+    {
+        Destroy(gameObject);
     }
 }

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6c3af4855dcd3947b08e52004ae8697, type: 3}
+  m_Name: BasePlayerAttackData
+  m_EditorClassIdentifier: 
+  <AttackType>k__BackingField: 0
+  AttackState: 3
+  <Damage>k__BackingField: 10
+  <Cooldown>k__BackingField: 0.8
+  <IFrameDuration>k__BackingField: 0
+  <Sprite>k__BackingField: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
+  <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
+  <HitSphereBounds>k__BackingField:
+  - {x: 0.72, y: 0.06, z: 0.45}
+  <AttackLayer>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 128

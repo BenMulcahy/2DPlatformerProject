@@ -1,9 +1,10 @@
 fileFormatVersion: 2
-guid: 325809285b6628d4db948fb13392fd8e
+guid: 5f2570f6fe1b14c309a896e14163d909
 labels:
-- Player
-PrefabImporter:
+- Attack
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 11400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 

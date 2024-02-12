@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6c3af4855dcd3947b08e52004ae8697, type: 3}
-  m_Name: DefaultTest
+  m_Name: DefaultAttack
   m_EditorClassIdentifier: 
   AttackType: 0
   Damage: 5
@@ -18,3 +18,8 @@ MonoBehaviour:
   Cooldown: 0.8
   IFrameDuration: 0
   Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  HitSphereBounds:
+  - {x: 0, y: 0, z: 0.7}
+  AttackLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
