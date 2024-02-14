@@ -15,12 +15,12 @@ MonoBehaviour:
   <AttackType>k__BackingField: 0
   AttackState: 3
   <Damage>k__BackingField: 10
-  <Cooldown>k__BackingField: 0.8
+  <Cooldown>k__BackingField: 0.2
   <IFrameDuration>k__BackingField: 0
   <Sprite>k__BackingField: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
   <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
   <HitSphereBounds>k__BackingField:
-  - {x: 0.72, y: 0.06, z: 0.45}
+  - {x: 1.04, y: 0, z: 0.5}
   <AttackLayer>k__BackingField:
     serializedVersion: 2
     m_Bits: 128

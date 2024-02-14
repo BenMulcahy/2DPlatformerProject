@@ -2,16 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(Animator))]
 public class Attack : MonoBehaviour
 {
     [field:SerializeField] public AttackData Data { get; private set; }
+    [SerializeField] bool _bFlipSpriteWithDir;
+    bool _bIsFlipped;
+    bool _bShouldAttackRight = true;
     float _atkCDTimer;
     bool _bIsAttacking;
 
     List<Collider2D> _hits = new List<Collider2D>();
+
+    Animator _animator;
     SpriteRenderer _spriteRenderer;
+    Vector2 _defaultSpritePos;
+    Vector3 _defaultScale;
 
     private void OnValidate()
     {
@@ -27,8 +32,11 @@ public class Attack : MonoBehaviour
     void SetData()
     {
         if (!Data) Data = Resources.Load<AttackData>("DefaultAttack");
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         _spriteRenderer.sprite = Data.Sprite;
+        _animator = GetComponent<Animator>();
+        _defaultSpritePos = _spriteRenderer.transform.localPosition;
+        _defaultScale = transform.localScale;
         Data.AttackState = AttackData.EAttackState.NULL;
     }
 
@@ -37,7 +45,8 @@ public class Attack : MonoBehaviour
         Gizmos.color = Color.red;
         foreach (var hitBox in Data.HitSphereBounds)
         {
-            Gizmos.DrawWireSphere(new Vector3(transform.position.x + hitBox.x, transform.position.y + hitBox.y, 0), hitBox.z);
+            Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
+            Gizmos.DrawWireSphere((Vector3)hitpos, hitBox.z);
         }
     }
 
@@ -51,7 +60,7 @@ public class Attack : MonoBehaviour
     {
         if (Data == null) {Debug.LogError("No Attack Data for attack: " + this.name); return;}
 
-        GetComponent<Animator>().SetTrigger("IsAttacking");
+        _animator.SetTrigger("IsAttacking");
         if(!_bIsAttacking) StartCoroutine(Attacking());
         //Debug.Log("Attack!");
     }
@@ -119,7 +128,11 @@ public class Attack : MonoBehaviour
         _hits.Clear();
         foreach (var hitBox in Data.HitSphereBounds)
         {
-            RaycastHit2D[] tmp = Physics2D.CircleCastAll(new Vector2(transform.position.x + hitBox.x, transform.position.y + hitBox.y), hitBox.z, transform.forward, Data.AttackLayer);
+            Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
+
+            RaycastHit2D[] tmp = Physics2D.CircleCastAll(hitpos, hitBox.z, transform.forward, Data.AttackLayer);
+            Debug.DrawRay(hitpos, _bShouldAttackRight ? Vector2.right : Vector2.left, Color.cyan, 0.2f);
+
             if (tmp.Length > 0)
             {
                 for (int i = 0; i < tmp.Length; i++)
@@ -144,4 +157,29 @@ public class Attack : MonoBehaviour
         }
     }
 
+    public virtual void SetAttackDir(bool attackRight)
+    {
+        _bShouldAttackRight = attackRight;
+        if (_bFlipSpriteWithDir)
+        {
+            if (attackRight && _bIsFlipped)
+            {
+                transform.localScale = _defaultScale;
+                _bIsFlipped = false;
+            }
+
+            if (!attackRight && !_bIsFlipped)
+            {
+                transform.localScale = new Vector3(_defaultScale.x * -1, _defaultScale.y, _defaultScale.z);
+                _bIsFlipped = true;
+            }
+        }
+        else
+        {
+            if (attackRight) _spriteRenderer.transform.localPosition = _defaultSpritePos;
+            else _spriteRenderer.transform.localPosition = new Vector2(-_defaultSpritePos.x, _defaultSpritePos.y);
+        }
+
+        
+    }
 }

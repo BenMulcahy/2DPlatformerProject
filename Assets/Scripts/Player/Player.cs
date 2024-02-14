@@ -32,6 +32,7 @@ public class Player : MonoBehaviour
     bool _bWantsToAttack = false;
 
     [HideInInspector] public bool bIsRightInput { get; private set; }
+    [HideInInspector] public bool bFacingRight { get; private set; }
     #endregion
 
     private void Awake()
@@ -68,7 +69,16 @@ public class Player : MonoBehaviour
         if (PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>() > 0) bIsRightInput = true;
         else if (PlayerInputComponent.actions.FindAction("Movement").ReadValue<float>() < 0) bIsRightInput = false;
 
+        SetLookDir();
+
         CheckInputBuffers();
+    }
+
+    private void SetLookDir()
+    {
+        //TODO: Setup facing right based on both input and current mov dir
+        bFacingRight = bIsRightInput;
+        _attackObject.SetAttackDir(bFacingRight);
     }
 
     //All inputs processed here and passed to appropriate component

@@ -56,10 +56,9 @@ public class InputManager : MonoBehaviour
 
     public void ControllerRumble(float intensity, float duration)
     {
-
-        #if !UNITY_EDITOR //Only run when in builds -> allows for easier testing in engine
+        //#if !UNITY_EDITOR //Only run when in builds -> allows for easier testing in engine
         if (InputType != "Gamepad") return;
-        #endif
+        //#endif
 
         //TODO: Enque or overwrite ongoing rumble if new rumble?
         Gamepad.current.SetMotorSpeeds(_rumbleLowFreq * intensity, _rumbleHighFreq * intensity);
