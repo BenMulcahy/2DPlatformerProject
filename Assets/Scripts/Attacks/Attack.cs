@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class Attack : MonoBehaviour
@@ -17,6 +18,8 @@ public class Attack : MonoBehaviour
     SpriteRenderer _spriteRenderer;
     Vector2 _defaultSpritePos;
     Vector3 _defaultScale;
+
+
 
     private void OnValidate()
     {
@@ -55,7 +58,9 @@ public class Attack : MonoBehaviour
         if(!_bIsAttacking) _atkCDTimer -= Time.deltaTime;
     }
 
-    
+
+    #region Attacking Logic
+
     public virtual void DoAttack()
     {
         if (Data == null) {Debug.LogError("No Attack Data for attack: " + this.name); return;}
@@ -131,7 +136,7 @@ public class Attack : MonoBehaviour
             Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
 
             RaycastHit2D[] tmp = Physics2D.CircleCastAll(hitpos, hitBox.z, transform.forward, Data.AttackLayer);
-            Debug.DrawRay(hitpos, _bShouldAttackRight ? Vector2.right : Vector2.left, Color.cyan, 0.2f);
+            //Debug.DrawRay(hitpos, _bShouldAttackRight ? Vector2.right : Vector2.left, Color.cyan, 0.2f);
 
             if (tmp.Length > 0)
             {
@@ -157,6 +162,10 @@ public class Attack : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region Visuals/Gamefeel
+
     public virtual void SetAttackDir(bool attackRight)
     {
         _bShouldAttackRight = attackRight;
@@ -179,7 +188,7 @@ public class Attack : MonoBehaviour
             if (attackRight) _spriteRenderer.transform.localPosition = _defaultSpritePos;
             else _spriteRenderer.transform.localPosition = new Vector2(-_defaultSpritePos.x, _defaultSpritePos.y);
         }
-
-        
     }
+
+    #endregion
 }

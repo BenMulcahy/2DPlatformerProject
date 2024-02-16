@@ -12,18 +12,11 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     [SerializeField][Range(0,5)] float EditorTimeScale = 1f;
     
-    Vector2 playerStartPos;
-
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
         if (!Instance) Instance = this;
         else { Destroy(gameObject); return; }
-    }
-
-    private void Start()
-    {
-        playerStartPos = Player.Instance.transform.position;
     }
 
     private void OnValidate()
@@ -34,7 +27,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         //DEBUG STUFF!!!! TODO:REMOVE FOR FINAL BUILD!!!!
-        if (Input.GetKeyDown(KeyCode.R)) Player.Instance.transform.position = playerStartPos;
+        if (Input.GetKeyDown(KeyCode.R)) SceneManager.Instance.RestartScene();
         if (Input.GetKeyDown(KeyCode.O)) Player.Instance.GetComponent<HealthComponent>().TakeDamage(5f);
     }
 
