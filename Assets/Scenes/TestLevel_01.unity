@@ -154,9 +154,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6454757e193daa40841a828eadd1ddd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _movementType: 0
   _moveSpeed: 10
+  _accelleration: 3
+  _deccelleration: 3
   _repathRate: 0.3
   _nextWaypointDist: 1
+  _maxTargetDistance: 10
+  _agentAvoidanceDistance: 3
+  _bCanAttack: 0
+  _attackObject: {fileID: 0}
 --- !u!114 &117266968
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -5,7 +5,12 @@ using Pathfinding;
 [RequireComponent(typeof(Seeker))]
 public class EnemyBase : MonoBehaviour
 {
-    Vector2 _targetPosition;
+    //TODO: Jumping
+    //TODO: Attacking
+
+    #region Vars
+
+    Transform _target;
     Seeker _seeker;
     Path _path;
 
@@ -19,13 +24,24 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] float _moveSpeed = 10f;
     [SerializeField] float _accelleration = 3f;
     [SerializeField] float _deccelleration = 3f;
+
     Rigidbody2D _rigidbody;
+
     [Header("Pathfinding")]
     [SerializeField] float _repathRate = 0.3f; //Time between each pathing calculation
     [SerializeField] float _nextWaypointDist = 3f;
+    [SerializeField] float _maxTargetDistance = 2f;
+    [SerializeField] float _agentAvoidanceDistance = 3f;
+    float _currentDistToTarget;
     float _lastRepathTime;
     int _currentWaypoint;
     bool _endOfPath;
+
+    [Header("--- Attacks --- ")]
+    [SerializeField] bool _bCanAttack;
+    [SerializeField] Attack _attackObject;
+
+    #endregion
 
     private void Start()
     {
@@ -47,6 +63,7 @@ public class EnemyBase : MonoBehaviour
     private void Update()
     {
         DoPathfinding();
+
     }
 
     #region Dying
@@ -63,8 +80,8 @@ public class EnemyBase : MonoBehaviour
     void FindPath()
     {
         Debug.Log("Find Path");
-        _targetPosition = Player.Instance.transform.position;
-        _seeker.StartPath(transform.position, _targetPosition, OnPathComplete);
+        _target = Player.Instance.transform;
+        _seeker.StartPath(transform.position, _target.position, OnPathComplete);
     }
 
     void DoPathfinding()
@@ -75,11 +92,12 @@ public class EnemyBase : MonoBehaviour
             FindPath();
         }
 
+        if (_target) _currentDistToTarget = Vector2.Distance(transform.position, _target.position);
+
         if (_path == null) { Debug.Log("No Path!"); return; }
 
         MoveTowardsNextWaypoint();
     }
-
 
     void MoveTowardsNextWaypoint()
     {
@@ -93,40 +111,39 @@ public class EnemyBase : MonoBehaviour
             {
                 Debug.Log("Check for end of path");
                 if (_currentWaypoint + 1 < _path.vectorPath.Count) _currentWaypoint++;
+                else if (_currentDistToTarget <= _maxTargetDistance) { _endOfPath = true; break; }
                 else { _endOfPath = true; break; }
             }
             else break;
         }
 
-        //TODO: Redo with custom movement 
-        /* MOVEMENT OLD 
-        // Slow down smoothly upon approaching the end of the path
-        // This value will smoothly go from 1 to 0 as the agent approaches the last waypoint in the path.
-        var speedFactor = _endOfPath ? Mathf.Sqrt(distToWaypoint / _nextWaypointDist) : 1f;
+        MoveX();
+    }
 
-        // Direction to the next waypoint
-        // Normalize it so that it has a length of 1 world unit
-        Vector3 dir = (_path.vectorPath[_currentWaypoint] - transform.position).normalized;
-        // Multiply the direction by our desired speed to get a velocity
-        Vector3 velocity = dir * _moveSpeed * speedFactor;
+    protected virtual void MoveX()
+    {
+        switch (_movementType)
+        {
+            case EMovementType.walking:
+                Vector3 dir = (_path.vectorPath[_currentWaypoint] - transform.position).normalized;
 
-        // If you are writing a 2D game you may want to remove the CharacterController and instead modify the position directly
-        Debug.Log(this.name + ": Do Move");
-        transform.position += (velocity * Time.deltaTime);
-        */
+                float targetSpeed = dir.x * _moveSpeed;
 
-        Vector3 dir = (_path.vectorPath[_currentWaypoint] - transform.position).normalized;
+                float accelForce = ((1 / Time.fixedDeltaTime) * _accelleration) / _moveSpeed;
+                float deccelForce = ((1 / Time.fixedDeltaTime) * _deccelleration) / _moveSpeed;
 
-        float targetSpeed = dir.x * _moveSpeed;
+                float accelRate;
+                accelRate = (Mathf.Abs((dir * _moveSpeed).magnitude) > 0.01f) ? accelForce : deccelForce;
 
-        float accelForce = ((1 / Time.fixedDeltaTime) * _accelleration) / _moveSpeed;
-        float deccelForce = ((1 / Time.fixedDeltaTime) * _deccelleration) / _moveSpeed;
-
-        float accelRate;
-        accelRate = (Mathf.Abs((dir * _moveSpeed).magnitude) > 0.01f) ? accelForce : deccelForce;
-
-        float movementVal = (targetSpeed - _rigidbody.velocity.x) * accelRate;
-        _rigidbody.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
+                float movementVal = (targetSpeed - _rigidbody.velocity.x) * accelRate;
+                _rigidbody.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
+                break;
+            case EMovementType.flying:
+                break;
+            default:
+                break;
+        }
+        
     }
 
     void OnPathComplete(Path pth)
@@ -139,6 +156,14 @@ public class EnemyBase : MonoBehaviour
             _currentWaypoint = 0;
         }
         else { Debug.LogWarning("Path calculated with error: " + pth.error); pth.Release(this); }
+    }
+
+    #endregion
+
+    #region Attacking
+    bool IsWantingToAttack()
+    {
+        return _currentDistToTarget <= _attackObject.Data.AttackRange;
     }
 
     #endregion
