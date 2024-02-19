@@ -217,6 +217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d6ed8f09f518874aaa9f6cb9699fd6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bCanTakeDamage: 1
   _maxHealth: 100
 --- !u!114 &9213879135022504012
 MonoBehaviour:
@@ -343,6 +344,10 @@ PrefabInstance:
     - target: {fileID: 567386694938988135, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
       propertyPath: m_Name
       value: BasePlayerAttack
+      objectReference: {fileID: 0}
+    - target: {fileID: 1695276982040951408, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      propertyPath: _bFlipSpriteWithDir
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5195502453822556374, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
       propertyPath: m_LocalPosition.x

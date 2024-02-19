@@ -23,7 +23,6 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public Sprite Sprite { get; private set; }
     [field: SerializeField] public AnimationClip AttackAnimation { get; private set; }
     [field: SerializeField] public Vector3[] HitSphereBounds { get; private set; } = { Vector3.forward };
-    [field: SerializeField] public float AttackRange { get; private set; } = 4f;
     [field: SerializeField] public LayerMask AttackLayer { get; private set; } = ~0;
 
     public float Duration { get; private set; }

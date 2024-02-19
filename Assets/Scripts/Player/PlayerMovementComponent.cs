@@ -3,7 +3,6 @@ using System;
 
 public class PlayerMovementComponent : MonoBehaviour
 {
-    //TODO: Add Edge Detect so you dont just bonk
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
     //TODO: Option to prevent downward motion during Coyote Time?
 

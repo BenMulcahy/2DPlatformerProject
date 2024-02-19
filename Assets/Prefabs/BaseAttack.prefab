@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5195502453822556374}
   - component: {fileID: 1695276982040951408}
+  - component: {fileID: 135666504642733312}
   m_Layer: 0
   m_Name: BaseAttack
   m_TagString: Untagged
@@ -46,7 +47,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Data>k__BackingField: {fileID: 11400000, guid: 5f2570f6fe1b14c309a896e14163d909, type: 2}
-  bShouldAttackRight: 1
+  _bFlipSpriteWithDir: 0
+--- !u!95 &135666504642733312
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 567386694938988135}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5113070902042283960
 GameObject:
   m_ObjectHideFlags: 0
@@ -56,7 +79,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8570981321442913702}
-  - component: {fileID: 4581044132228733621}
   - component: {fileID: 8824150797711189563}
   m_Layer: 0
   m_Name: AttackVisuals
@@ -80,28 +102,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5195502453822556374}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &4581044132228733621
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5113070902042283960}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: d946ce7d3e1774683bd9d3ba0f74036f, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!212 &8824150797711189563
 SpriteRenderer:
   m_ObjectHideFlags: 0

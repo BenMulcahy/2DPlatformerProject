@@ -26,9 +26,12 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        //DEBUG STUFF!!!! TODO:REMOVE FOR FINAL BUILD!!!!
+        /* DEBUGGING */
+    #if (UNITY_EDITOR)
         if (Input.GetKeyDown(KeyCode.R)) SceneManager.Instance.RestartScene();
         if (Input.GetKeyDown(KeyCode.O)) Player.Instance.GetComponent<HealthComponent>().TakeDamage(5f);
+        Player.Instance.GetComponent<HealthComponent>().bCanTakeDamage = false;
+    #endif
     }
 
 

@@ -9,6 +9,7 @@ public class HealthComponent : MonoBehaviour, IHittable
     public event OnOutOfHealth onOutOfHealth;
 
 
+    public bool bCanTakeDamage = true;
     [SerializeField] float _maxHealth = 100f;
     float currentHealth;
 
@@ -21,6 +22,7 @@ public class HealthComponent : MonoBehaviour, IHittable
 
     public void TakeDamage(float damage)
     {
+        if (!bCanTakeDamage) return;
         Debug.Log(transform.gameObject.name + " Took " +  damage + " damage");
 
         bHasBeenHitThisInstance = true;

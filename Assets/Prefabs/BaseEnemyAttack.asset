@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6c3af4855dcd3947b08e52004ae8697, type: 3}
-  m_Name: BasePlayerAttackData
+  m_Name: BaseEnemyAttack
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 0
   AttackState: 3
-  <Damage>k__BackingField: 10
-  <Cooldown>k__BackingField: 0.2
+  <Damage>k__BackingField: 5
+  <Cooldown>k__BackingField: 0.8
   <IFrameDuration>k__BackingField: 0
   <Sprite>k__BackingField: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
   <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
   <HitSphereBounds>k__BackingField:
-  - {x: 0.53, y: 0, z: 0.5}
-  <AttackRange>k__BackingField: 4
+  - {x: 1.4, y: 0.58, z: 0.93}
   <AttackLayer>k__BackingField:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 64

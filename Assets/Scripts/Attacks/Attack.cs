@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class Attack : MonoBehaviour
 {
+    //TODO: IFrames
+
     [field:SerializeField] public AttackData Data { get; private set; }
     [SerializeField] bool _bFlipSpriteWithDir;
     bool _bIsFlipped;
@@ -51,6 +53,10 @@ public class Attack : MonoBehaviour
             Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
             Gizmos.DrawWireSphere((Vector3)hitpos, hitBox.z);
         }
+
+        //Draw attack range
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.parent.position, GetAttackHitRadius());
     }
 
     private void Update()
@@ -85,7 +91,7 @@ public class Attack : MonoBehaviour
         {
             if (AttackHitCheck())
             {
-                Debug.Log("hit: " + _hits.Count + " enemies");
+                //Debug.Log("hit: " + _hits.Count + " entities");
                 for (int i = 0; i < _hits.Count; i++)
                 {
                     //Deal Damage
@@ -135,15 +141,18 @@ public class Attack : MonoBehaviour
         {
             Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
 
-            RaycastHit2D[] tmp = Physics2D.CircleCastAll(hitpos, hitBox.z, transform.forward, Data.AttackLayer);
+            RaycastHit2D[] tmp = Physics2D.CircleCastAll(hitpos, hitBox.z, transform.forward,Mathf.Infinity,Data.AttackLayer);
             //Debug.DrawRay(hitpos, _bShouldAttackRight ? Vector2.right : Vector2.left, Color.cyan, 0.2f);
 
             if (tmp.Length > 0)
             {
                 for (int i = 0; i < tmp.Length; i++)
                 {
-                    if (!_hits.Contains(tmp[i].collider)) _hits.Add(tmp[i].collider);
-                    //else Debug.LogWarning("Already in hit list");
+                    if (tmp[i].collider.gameObject != gameObject) //Assurance cant hit self
+                    {
+                        if (!_hits.Contains(tmp[i].collider)) _hits.Add(tmp[i].collider);
+                        //else Debug.LogWarning("Already in hit list");
+                    }
                 }
             }
         }
@@ -161,6 +170,36 @@ public class Attack : MonoBehaviour
             _atkCDTimer = Data.Cooldown;
         }
     }
+
+    /// <summary>
+    /// Gets the furthest point from the entity to hit box areas
+    /// </summary>
+    /// <returns>Distance from entity point to further hitbox point</returns>
+    public float GetAttackHitRadius()
+    {
+        Vector2 entityPos = transform.parent.position;
+        Vector2 allHitBoxesFurthestPoint = entityPos;
+
+
+        //Get furthest hitbox
+        foreach (var hitBox in Data.HitSphereBounds)
+        {
+            Vector2 hitboxPos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
+            //Vector2.Angle(transform.parent.position, hitboxPos);
+            float hitBoxDist = Vector2.Distance(entityPos, hitboxPos);
+
+            Vector2 hitBoxFurthestPoint = entityPos + (hitboxPos - entityPos) * (hitBoxDist + hitBox.z) / hitBoxDist;
+
+            if (Vector2.Distance(entityPos, allHitBoxesFurthestPoint) < Vector2.Distance(entityPos, hitBoxFurthestPoint))
+            {
+                allHitBoxesFurthestPoint = hitBoxFurthestPoint;
+            } 
+        }
+     
+        Debug.DrawLine(entityPos, allHitBoxesFurthestPoint, Color.cyan);
+        return Vector2.Distance(entityPos, allHitBoxesFurthestPoint);
+    }
+
 
     #endregion
 
