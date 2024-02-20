@@ -256,7 +256,6 @@ public class EnemyBase : MonoBehaviour
         if (InRangeOfTarget())
         {
             _bFacingRight = transform.position.x < _targetPos.x ? true : false; //Face target
-            print(_bFacingRight);
         }
         else
         {

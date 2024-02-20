@@ -202,7 +202,6 @@ public class PlayerMovementComponent : MonoBehaviour
 
     #endregion
 
-
     #region Walk/Running
     private void MovementX()
     {

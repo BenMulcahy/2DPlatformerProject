@@ -21,6 +21,13 @@ public class Attack : MonoBehaviour
     Vector2 _defaultSpritePos;
     Vector3 _defaultScale;
 
+    public enum EAttackState
+    {
+        startup, active, ending, NULL
+    }
+
+    EAttackState _attackState = EAttackState.NULL;
+
 
 
     private void OnValidate()
@@ -42,7 +49,7 @@ public class Attack : MonoBehaviour
         _animator = GetComponent<Animator>();
         _defaultSpritePos = _spriteRenderer.transform.localPosition;
         _defaultScale = transform.localScale;
-        Data.AttackState = AttackData.EAttackState.NULL;
+        _attackState = EAttackState.NULL;
     }
 
     private void OnDrawGizmosSelected()
@@ -71,45 +78,51 @@ public class Attack : MonoBehaviour
     {
         if (Data == null) {Debug.LogError("No Attack Data for attack: " + this.name); return;}
 
-        _animator.SetTrigger("IsAttacking");
-        if(!_bIsAttacking) StartCoroutine(Attacking());
-        //Debug.Log("Attack!");
+        if (!_bIsAttacking) StartCoroutine(Attacking());
+        Debug.Log("Attack!");
+        
     }
     
 
     public virtual IEnumerator Attacking()
     {
+        WaitForEndOfFrame wait = new WaitForEndOfFrame();
         _bIsAttacking = true;
 
-        while(Data.AttackState == AttackData.EAttackState.startup)
+        _attackState = EAttackState.startup;
+        _animator.SetTrigger("IsAttacking");
+        while (_attackState == EAttackState.startup)
         {
             //Start up logic
-            yield return null;
+            yield return wait;
         }
 
-        while(Data.AttackState == AttackData.EAttackState.active)
+        while(_attackState == EAttackState.active)
         {
             if (AttackHitCheck())
             {
-                //Debug.Log("hit: " + _hits.Count + " entities");
+                Debug.Log("hit: " + _hits.Count + " entities");
                 for (int i = 0; i < _hits.Count; i++)
                 {
-                    //Deal Damage
+                    /* -------- DEAL DAMAGE ------- */
                     IHittable hittable = _hits[i].gameObject.GetComponent<IHittable>();
                     if (hittable != null && !hittable.bHasBeenHitThisInstance)
                     {
+                        Debug.Log("do hittin");
                         hittable.TakeDamage(Data.Damage);
+                        if (hittable.bCanBeKnockedBack) Knockback(_hits[i].gameObject);
                         hittable.bHasBeenHitThisInstance = true;
+                        Hitstop();
                     }
                 }
             }
-            yield return null;
+            yield return wait;
         }
 
-        while(Data.AttackState == AttackData.EAttackState.ending)
+        while(_attackState == EAttackState.ending)
         {
             //End lag logic
-            yield return null;
+            yield return wait;
         }
 
         _bIsAttacking = false;
@@ -136,7 +149,7 @@ public class Attack : MonoBehaviour
     bool AttackHitCheck()
     {
         //Debug.Log("Check for hits");
-        _hits.Clear();
+        //_hits.Clear();
         foreach (var hitBox in Data.HitSphereBounds)
         {
             Vector2 hitpos = new Vector2(transform.position.x + (_bShouldAttackRight ? hitBox.x : -hitBox.x), transform.position.y + hitBox.y);
@@ -148,11 +161,8 @@ public class Attack : MonoBehaviour
             {
                 for (int i = 0; i < tmp.Length; i++)
                 {
-                    if (tmp[i].collider.gameObject != gameObject) //Assurance cant hit self
-                    {
-                        if (!_hits.Contains(tmp[i].collider)) _hits.Add(tmp[i].collider);
-                        //else Debug.LogWarning("Already in hit list");
-                    }
+                    if (!_hits.Contains(tmp[i].collider)) _hits.Add(tmp[i].collider);
+                    else Debug.LogWarning("Already in hit list");
                 }
             }
         }
@@ -161,10 +171,12 @@ public class Attack : MonoBehaviour
         else return false;
     }
 
-    public void SetAttackState(AttackData.EAttackState newState)
+    public void SetAttackState(EAttackState newState)
     {
-        Data.AttackState = newState;
-        if (newState == AttackData.EAttackState.NULL)
+        _attackState = newState;
+
+        //Debug.Log("Attack Set to " + _attackState);
+        if (newState == EAttackState.NULL)
         {
             ResetHits();
             _atkCDTimer = Data.Cooldown;
@@ -226,6 +238,31 @@ public class Attack : MonoBehaviour
         {
             if (attackRight) _spriteRenderer.transform.localPosition = _defaultSpritePos;
             else _spriteRenderer.transform.localPosition = new Vector2(-_defaultSpritePos.x, _defaultSpritePos.y);
+        }
+    }
+
+    protected virtual void Hitstop()
+    {
+        if (Data.HitstopDuration <= 0) return;
+        if (!GameManager.Instance.bIsTimeFrozen) GameManager.Instance.DoHitstop(Data.HitstopDuration);
+    }
+
+    protected virtual void Knockback(GameObject hit)
+    {
+        if (Data.Knockback <= 0) return;
+        Debug.Log("Knockback");
+        Rigidbody2D rb = hit.GetComponent<Rigidbody2D>();
+        if (rb)
+        {
+            //Get direction from attacker to hit
+            Vector2 dir = (transform.parent.position - hit.transform.position).normalized;
+
+            //Set knockback force to -dir * knockback
+            Vector2 knockbackVector = -dir * Data.Knockback;
+
+            //Apply force
+            rb.AddForce(knockbackVector, ForceMode2D.Force);
+
         }
     }
 

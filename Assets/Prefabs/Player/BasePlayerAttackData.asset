@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: BasePlayerAttackData
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 0
-  AttackState: 3
   <Damage>k__BackingField: 10
+  <Knockback>k__BackingField: 1000
   <Cooldown>k__BackingField: 0.2
+  <HitstopDuration>k__BackingField: 0.05
   <IFrameDuration>k__BackingField: 0
   <Sprite>k__BackingField: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
   <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
   <HitSphereBounds>k__BackingField:
-  - {x: 0.53, y: 0, z: 0.5}
-  <AttackRange>k__BackingField: 4
+  - {x: 1.64, y: -0.15, z: 0.51}
   <AttackLayer>k__BackingField:
     serializedVersion: 2
     m_Bits: 128

@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; }
     [SerializeField][Range(0,5)] float EditorTimeScale = 1f;
+    public bool bIsTimeFrozen { get; private set; } = false;
     
     private void Awake()
     {
@@ -34,6 +35,25 @@ public class GameManager : MonoBehaviour
     #endif
     }
 
+    #region Timescale based hitstop
+    public void DoHitstop(float duration)
+    {
+        //Debug.Log("Freeze");
+        StartCoroutine(HitstopFreeze(duration));
+    }
+
+    IEnumerator HitstopFreeze(float duration)
+    {
+        bIsTimeFrozen = true;
+        var defTimeScale = Time.timeScale;
+        Time.timeScale = 0;
+
+        yield return new WaitForSecondsRealtime(duration);
+
+        Time.timeScale = defTimeScale;
+        bIsTimeFrozen = false;
+    }
+    #endregion
 
     public void PauseGame()
     {
@@ -45,6 +65,9 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogWarning("Game Quit Called from Game Manager");
         Application.Quit();
+
+
+       
     }
 
 }

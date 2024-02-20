@@ -178,7 +178,7 @@ MonoBehaviour:
   _repathRate: 0.3
   _nextWaypointDist: 1
   _maxTargetDistance: 2.4453876
-  _bAttackEnabled: 1
+  _bAttackEnabled: 0
   _attackObject: {fileID: 1232780}
 --- !u!114 &117266968
 MonoBehaviour:
@@ -193,7 +193,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bCanTakeDamage: 1
-  _maxHealth: 50
+  _maxHealth: 100000
+  <bCanBeKnockedBack>k__BackingField: 1
 --- !u!212 &117266969
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -14,6 +14,7 @@ public class HealthComponent : MonoBehaviour, IHittable
     float currentHealth;
 
     public bool bHasBeenHitThisInstance { get; set; }
+    [field: SerializeField] public bool bCanBeKnockedBack { get; set; }
 
     void Start()
     {
