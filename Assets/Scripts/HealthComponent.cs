@@ -14,7 +14,11 @@ public class HealthComponent : MonoBehaviour, IHittable
     float currentHealth;
 
     public bool bHasBeenHitThisInstance { get; set; }
+
+    [field: Header("--- Knockback ---")]
     [field: SerializeField] public bool bCanBeKnockedBack { get; set; }
+    [Range(0,0.25f)] [field: SerializeField] public float KnockbackRecoveryLerp { get; protected set; } = 0.1f;
+    public bool bIsKnockedBack { get; set; }
 
     void Start()
     {

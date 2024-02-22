@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using Unity.VisualScripting;
 
 public class Attack : MonoBehaviour
 {
@@ -79,7 +80,7 @@ public class Attack : MonoBehaviour
         if (Data == null) {Debug.LogError("No Attack Data for attack: " + this.name); return;}
 
         if (!_bIsAttacking) StartCoroutine(Attacking());
-        Debug.Log("Attack!");
+        //Debug.Log("Attack!");
         
     }
     
@@ -101,18 +102,17 @@ public class Attack : MonoBehaviour
         {
             if (AttackHitCheck())
             {
-                Debug.Log("hit: " + _hits.Count + " entities");
+                //Debug.Log("hit: " + _hits.Count + " entities");
                 for (int i = 0; i < _hits.Count; i++)
                 {
                     /* -------- DEAL DAMAGE ------- */
-                    IHittable hittable = _hits[i].gameObject.GetComponent<IHittable>();
-                    if (hittable != null && !hittable.bHasBeenHitThisInstance)
+                    if(_hits[i] != null ) //check that hit is valid (enemy hasnt died)
                     {
-                        Debug.Log("do hittin");
-                        hittable.TakeDamage(Data.Damage);
-                        if (hittable.bCanBeKnockedBack) Knockback(_hits[i].gameObject);
-                        hittable.bHasBeenHitThisInstance = true;
-                        Hitstop();
+                        IHittable hittable = _hits[i].gameObject.GetComponent<IHittable>();
+                        if (hittable != null && !hittable.bHasBeenHitThisInstance)
+                        {
+                            OnAttackHit(hittable, i);
+                        }
                     }
                 }
             }
@@ -128,14 +128,30 @@ public class Attack : MonoBehaviour
         _bIsAttacking = false;
     }
 
+    void OnAttackHit(IHittable hit, int index)
+    {
+        //Debug.Log("do hittin");
+        hit.TakeDamage(Data.Damage);
+        if (hit.bCanBeKnockedBack)
+        {
+            Knockback(_hits[index].gameObject);
+        }
+
+        hit.bHasBeenHitThisInstance = true;
+        
+        Hitstop();
+    }
+
     //Reset Hit state on all items hit
     void ResetHits()
     {
         foreach (Collider2D hit in _hits)
         {
+            if (!hit) break; //in case hit isnt valid (enemy has died)
             if(hit.GetComponent<IHittable>() != null) //Redundancy check
             {
                 hit.GetComponent<IHittable>().bHasBeenHitThisInstance = false;
+                hit.GetComponent<IHittable>().bIsKnockedBack = false;
             } 
         }
         _hits.Clear();
@@ -162,7 +178,7 @@ public class Attack : MonoBehaviour
                 for (int i = 0; i < tmp.Length; i++)
                 {
                     if (!_hits.Contains(tmp[i].collider)) _hits.Add(tmp[i].collider);
-                    else Debug.LogWarning("Already in hit list");
+                    //else Debug.LogWarning("Already in hit list");
                 }
             }
         }
@@ -250,10 +266,12 @@ public class Attack : MonoBehaviour
     protected virtual void Knockback(GameObject hit)
     {
         if (Data.Knockback <= 0) return;
-        Debug.Log("Knockback");
+        //Debug.Log("Knockback");
         Rigidbody2D rb = hit.GetComponent<Rigidbody2D>();
         if (rb)
         {
+            hit.GetComponent<IHittable>().bIsKnockedBack = true;
+
             //Get direction from attacker to hit
             Vector2 dir = (transform.parent.position - hit.transform.position).normalized;
 
@@ -261,8 +279,7 @@ public class Attack : MonoBehaviour
             Vector2 knockbackVector = -dir * Data.Knockback;
 
             //Apply force
-            rb.AddForce(knockbackVector, ForceMode2D.Force);
-
+            rb.AddForce(knockbackVector, ForceMode2D.Impulse);
         }
     }
 

@@ -211,7 +211,12 @@ public class PlayerMovementComponent : MonoBehaviour
         //Calculate Accel and target speed
         float targetSpeed = movementInput * (bIsSprinting ? _sprintSpeed : _walkSpeed);
 
-        if(_wallJumpDurationTimer < _wallJumpDuration)
+
+        if (GetComponent<HealthComponent>().bIsKnockedBack)
+        {
+            targetSpeed = Mathf.Lerp(RB.velocityX, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
+        }
+        else if(_wallJumpDurationTimer < _wallJumpDuration)
         {
             targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _wallJumpToRunLerp);
             //targetSpeed = 0;

@@ -201,7 +201,15 @@ public class EnemyBase : MonoBehaviour
 
                 float targetSpeed = dir.x * _moveSpeed;
 
-                if (ReachedTarget()) targetSpeed = 0;
+                if (GetComponent<IHittable>().bIsKnockedBack)
+                {
+                    targetSpeed = Mathf.Lerp(_rigidbody.velocity.x, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
+                }
+                else
+                {
+                    if (ReachedTarget()) targetSpeed = 0;
+                }
+
 
                 float accelForce = ((1 / Time.fixedDeltaTime) * _accelleration) / _moveSpeed;
                 float deccelForce = ((1 / Time.fixedDeltaTime) * _deccelleration) / _moveSpeed;
@@ -252,6 +260,8 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void UpdateLookDir()
     {
+        if (GetComponent<HealthComponent>().bIsKnockedBack) return;
+
         //Update L/R direction
         if (InRangeOfTarget())
         {

@@ -76,6 +76,8 @@ public class Player : MonoBehaviour
 
     private void SetLookDir()
     {
+        if (GetComponent<HealthComponent>().bIsKnockedBack) return;
+
         //TODO: Setup facing right based on both input and current mov dir
         bFacingRight = bIsRightInput;
         _attackObject.SetAttackDir(bFacingRight);

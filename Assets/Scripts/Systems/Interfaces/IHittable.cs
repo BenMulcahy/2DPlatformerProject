@@ -7,4 +7,5 @@ public interface IHittable
     void TakeDamage(float damage);
     bool bHasBeenHitThisInstance { get; set; }
     bool bCanBeKnockedBack { get; set; }
+    bool bIsKnockedBack { get; set; }
 }

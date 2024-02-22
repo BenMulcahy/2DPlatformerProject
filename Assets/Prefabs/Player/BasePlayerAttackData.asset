@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 0
   <Damage>k__BackingField: 10
-  <Knockback>k__BackingField: 1000
+  <Knockback>k__BackingField: 40
   <Cooldown>k__BackingField: 0.2
   <HitstopDuration>k__BackingField: 0.05
   <IFrameDuration>k__BackingField: 0
