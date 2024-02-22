@@ -17,10 +17,11 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] float _squashDuration = 0.05f;
 
     [Header("--- Camera Shakes ---")]
+    public bool bEnablePlayerCamShakes { private get; set; } = true;
+    [Header("Landing")]
     [SerializeField] NoiseSettings _playerLandShake;
     [SerializeField] float _landingCamShakeDuration = 0.2f;
     [SerializeField] float _landingCamShakeIntensityMod = 1f;
-
     
     [Header("--- Controller Rumble ---")]
     [SerializeField] float _damageRumbleDuration = 0.3f;
@@ -49,6 +50,7 @@ public class PlayerFX : MonoBehaviour
         PlayerMovementComponent.onPlayerWallSlide -= PlayerWallSlideFX;
         Player.Instance.GetComponent<HealthComponent>().onTakeDamage -= PlayerTakeDamageFX;
     }
+
     #endregion
 
     #region bound delegate functions
@@ -88,6 +90,7 @@ public class PlayerFX : MonoBehaviour
 
     private void PlayerTakeDamageFX()
     {
+        Debug.Log("Do Rumble");
         InputManager.Instance.ControllerRumble(_damageRumbleIntensity,_damageRumbleDuration);
     }
 

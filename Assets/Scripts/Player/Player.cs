@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
     #region Vars
     [Header("--- Attacking ---")]
     public bool bAttackEnabled = true;
-    [SerializeField] Attack _attackObject;
+    public Attack AttackObject { get; private set; }
 
 
     [Header("--- Input Buffers ---")]
@@ -41,11 +41,12 @@ public class Player : MonoBehaviour
         else Destroy(this);
 
         playerMovement = GetComponent<PlayerMovementComponent>();
+        if (!AttackObject) AttackObject = GetComponentInChildren<Attack>();
     }
 
     private void Start()
     {
-        if (!_attackObject) _attackObject = GetComponentInChildren<Attack>();
+        //if (!AttackObject) AttackObject = GetComponentInChildren<Attack>();
     }
 
     private void OnEnable()
@@ -80,7 +81,7 @@ public class Player : MonoBehaviour
 
         //TODO: Setup facing right based on both input and current mov dir
         bFacingRight = bIsRightInput;
-        _attackObject.SetAttackDir(bFacingRight);
+        AttackObject.SetAttackDir(bFacingRight);
     }
 
     //All inputs processed here and passed to appropriate component
@@ -134,7 +135,7 @@ public class Player : MonoBehaviour
     {
         if (!bAttackEnabled) return;
 
-        if (!_attackObject.CanAttack())
+        if (!AttackObject.CanAttack())
         {
             _bWantsToAttack = true;
             _atkBufferTimer = _atkInputBuffer;
@@ -142,7 +143,7 @@ public class Player : MonoBehaviour
         else
         {
             //Do Attack
-            _attackObject.DoAttack();
+            AttackObject.DoAttack();
             onPlayerAttack?.Invoke();
         }
     }
@@ -209,7 +210,7 @@ public class Player : MonoBehaviour
         //Attack input buffer
         if (_bWantsToAttack)
         {
-            if (_atkBufferTimer > 0 && !_attackObject.CanAttack())
+            if (_atkBufferTimer > 0 && !AttackObject.CanAttack())
             {
                 _atkBufferTimer -= Time.deltaTime;
             }
@@ -217,7 +218,7 @@ public class Player : MonoBehaviour
             {
                 _bWantsToAttack = false;
                 _atkBufferTimer = 0;
-                if (bAttackEnabled && _attackObject.CanAttack()) _attackObject.DoAttack();
+                if (bAttackEnabled && AttackObject.CanAttack()) AttackObject.DoAttack();
             }
         }
     }

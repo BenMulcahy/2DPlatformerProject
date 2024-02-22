@@ -67,7 +67,6 @@ public class CameraManager : MonoBehaviour
             EndCameraShake();
         }
 
-
         if (!baseNoiseSetting) { baseNoiseSetting = _defaultCamShakeNoiseProfile; Debug.LogWarning("Default Cam Shake used! Is this intentional?"); } //Allows for cam shake to be called using default 6d noise
         MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_NoiseProfile = baseNoiseSetting;
         MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_AmplitudeGain = intensityMod;

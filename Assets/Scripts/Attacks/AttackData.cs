@@ -1,3 +1,4 @@
+using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,11 +16,13 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public float Knockback { get; private set; } = 0f;
     [field: SerializeField] public float Cooldown { get; private set; } = 0.8f;
     [field: SerializeField] public float HitstopDuration { get; private set; } = 0f;
-    [field: SerializeField] public float IFrameDuration { get; private set; } = 0f; //if 0 -> no i frames
     [field: SerializeField] public Sprite Sprite { get; private set; }
     [field: SerializeField] public AnimationClip AttackAnimation { get; private set; }
     [field: SerializeField] public Vector3[] HitSphereBounds { get; private set; } = { Vector3.forward };
     [field: SerializeField] public LayerMask AttackLayer { get; private set; } = ~0;
+    [field: SerializeField] public float CameraShakeIntensity { get; private set; } = 0f;
+    [field: SerializeField] public float CameraShakeDuration { get; private set; }
+    [field: SerializeField] public NoiseSettings CameraShakeNoiseSettings { get; private set; }
 
     public float Duration { get; private set; }
 

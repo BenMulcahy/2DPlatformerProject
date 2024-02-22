@@ -11,7 +11,7 @@ public class HealthComponent : MonoBehaviour, IHittable
 
     public bool bCanTakeDamage = true;
     [SerializeField] float _maxHealth = 100f;
-    float currentHealth;
+    float _currentHealth;
 
     public bool bHasBeenHitThisInstance { get; set; }
 
@@ -22,7 +22,7 @@ public class HealthComponent : MonoBehaviour, IHittable
 
     void Start()
     {
-        currentHealth = _maxHealth;
+        _currentHealth = _maxHealth;
     }
 
     public void TakeDamage(float damage)
@@ -32,19 +32,19 @@ public class HealthComponent : MonoBehaviour, IHittable
 
         bHasBeenHitThisInstance = true;
 
-        currentHealth -= damage;
+        _currentHealth -= damage;
         onTakeDamage?.Invoke();
 
-        if (currentHealth <= 0) onOutOfHealth?.Invoke();
+        if (_currentHealth <= 0) onOutOfHealth?.Invoke();
     }
 
     public void RecoverHealth(float healthRestored)
     {
-        currentHealth += healthRestored;
+        _currentHealth += healthRestored;
     }
     public void ResetHealth()
     {
-        currentHealth = _maxHealth;
+        _currentHealth = _maxHealth;
     }
-    public float GetCurrentHealth() { return currentHealth; }
+    public float GetCurrentHealth() { return _currentHealth; }
 }

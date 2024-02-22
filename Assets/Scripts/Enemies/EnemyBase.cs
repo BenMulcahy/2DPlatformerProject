@@ -8,7 +8,6 @@ using System;
 public class EnemyBase : MonoBehaviour
 {
     //TODO: Jumping
-    //TODO: Attacking
 
     #region Events/Delegates
     public static Action<EnemyBase> onEnemyDeath = delegate { };
@@ -108,6 +107,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         onEnemyDeath?.Invoke(this);
+        _attackObject.ResetHits(); //ensures that any knocback etc applied to player is removed
         Destroy(gameObject);
     }
     #endregion
@@ -125,7 +125,7 @@ public class EnemyBase : MonoBehaviour
         }
 
 
-        if (_path == null) { Debug.Log("No Path!"); return; }
+        if (_path == null) return;
 
         MoveTowardsNextWaypoint();
     }
@@ -285,7 +285,11 @@ public class EnemyBase : MonoBehaviour
         {
             return _currentDistToTarget <= _attackObject.GetAttackHitRadius();
         }
-        else return false;
+        else
+        {
+            _attackObject.ResetAtkCD(); //Keep atk on cooldown if not in range -> prevents attacks triggers as soon as in range
+            return false;
+        }
         
     }
 

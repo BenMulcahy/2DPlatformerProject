@@ -6,8 +6,36 @@ using Unity.VisualScripting;
 
 public class Attack : MonoBehaviour
 {
-    //TODO: IFrames
+    //TODO: Ranged attacks 
+    //TODO: Hit interrupt
 
+    #region Events/Delegates
+    /// <summary>
+    /// Called whenever attack hits something
+    /// </summary>
+    public delegate void OnAttackHit();
+    public event OnAttackHit onAttackHit;
+
+    /// <summary>
+    /// Called when attack state changes to startup
+    /// </summary>
+    public delegate void OnAttackStartup();
+    public event OnAttackStartup onAttackStartup;
+
+    /// <summary>
+    /// Called when attack state changes to active
+    /// </summary>
+    public delegate void OnAttackActive();
+    public event OnAttackActive onAttackActive;
+
+    /// <summary>
+    /// Called when attack state changes to end
+    /// </summary>
+    public delegate void OnAttackEnd();
+    public event OnAttackEnd onAttackEnd;
+    #endregion
+
+    #region Vars
     [field:SerializeField] public AttackData Data { get; private set; }
     [SerializeField] bool _bFlipSpriteWithDir;
     bool _bIsFlipped;
@@ -28,6 +56,7 @@ public class Attack : MonoBehaviour
     }
 
     EAttackState _attackState = EAttackState.NULL;
+    #endregion
 
 
 
@@ -111,7 +140,7 @@ public class Attack : MonoBehaviour
                         IHittable hittable = _hits[i].gameObject.GetComponent<IHittable>();
                         if (hittable != null && !hittable.bHasBeenHitThisInstance)
                         {
-                            OnAttackHit(hittable, i);
+                            AttackHit(hittable, i);
                         }
                     }
                 }
@@ -128,7 +157,7 @@ public class Attack : MonoBehaviour
         _bIsAttacking = false;
     }
 
-    void OnAttackHit(IHittable hit, int index)
+    void AttackHit(IHittable hit, int index)
     {
         //Debug.Log("do hittin");
         hit.TakeDamage(Data.Damage);
@@ -137,13 +166,16 @@ public class Attack : MonoBehaviour
             Knockback(_hits[index].gameObject);
         }
 
+        //Cam shake
+        if (!CameraManager.Instance.bIsCameraShaking) CameraManager.Instance.DoCameraShake(Data.CameraShakeIntensity, Data.CameraShakeDuration, Data.CameraShakeNoiseSettings ? Data.CameraShakeNoiseSettings : null);
         hit.bHasBeenHitThisInstance = true;
-        
         Hitstop();
+
+        onAttackHit?.Invoke();
     }
 
     //Reset Hit state on all items hit
-    void ResetHits()
+    public void ResetHits()
     {
         foreach (Collider2D hit in _hits)
         {
@@ -191,12 +223,26 @@ public class Attack : MonoBehaviour
     {
         _attackState = newState;
 
-        //Debug.Log("Attack Set to " + _attackState);
-        if (newState == EAttackState.NULL)
+        switch (_attackState)
         {
-            ResetHits();
-            _atkCDTimer = Data.Cooldown;
+            case EAttackState.startup:
+                onAttackStartup?.Invoke();
+                break;
+            case EAttackState.active:
+                onAttackActive?.Invoke();
+                break;
+            case EAttackState.ending:
+                onAttackEnd?.Invoke();
+                break;
+            case EAttackState.NULL:
+                ResetHits();
+                ResetAtkCD();
+                break;
+            default:
+                break;
         }
+
+        //Debug.Log("Attack Set to " + _attackState);
     }
 
     /// <summary>
@@ -226,6 +272,11 @@ public class Attack : MonoBehaviour
      
         Debug.DrawLine(entityPos, allHitBoxesFurthestPoint, Color.cyan);
         return Vector2.Distance(entityPos, allHitBoxesFurthestPoint);
+    }
+
+    public void InvincibleFrames(bool enabled)
+    {
+        GetComponentInParent<HealthComponent>().bCanTakeDamage = !enabled;
     }
 
 
@@ -282,6 +333,10 @@ public class Attack : MonoBehaviour
             rb.AddForce(knockbackVector, ForceMode2D.Impulse);
         }
     }
-
     #endregion
+
+    public void ResetAtkCD()
+    {
+        _atkCDTimer = Data.Cooldown;
+    }
 }

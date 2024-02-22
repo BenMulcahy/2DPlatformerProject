@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -31,7 +34,6 @@ public class GameManager : MonoBehaviour
     #if (UNITY_EDITOR)
         if (Input.GetKeyDown(KeyCode.R)) SceneManager.Instance.RestartScene();
         if (Input.GetKeyDown(KeyCode.O)) Player.Instance.GetComponent<HealthComponent>().TakeDamage(5f);
-        Player.Instance.GetComponent<HealthComponent>().bCanTakeDamage = false;
     #endif
     }
 
@@ -64,10 +66,7 @@ public class GameManager : MonoBehaviour
     public void QuitGame()
     {
         Debug.LogWarning("Game Quit Called from Game Manager");
+        CameraManager.Instance.EndCameraShake();
         Application.Quit();
-
-
-       
     }
-
 }
