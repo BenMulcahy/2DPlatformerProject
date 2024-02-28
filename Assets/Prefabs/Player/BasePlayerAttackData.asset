@@ -24,6 +24,6 @@ MonoBehaviour:
   <AttackLayer>k__BackingField:
     serializedVersion: 2
     m_Bits: 128
-  <CameraShakeIntensity>k__BackingField: 1
-  <CameraShakeDuration>k__BackingField: 0.1
+  <CameraShakeIntensity>k__BackingField: 0
+  <CameraShakeDuration>k__BackingField: 0
   <CameraShakeNoiseSettings>k__BackingField: {fileID: 11400000, guid: be4a87108f55a4ca6b70c39b383c6b12, type: 2}

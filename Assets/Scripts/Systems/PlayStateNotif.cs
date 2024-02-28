@@ -8,6 +8,7 @@ public static class PlayStateNotif
     static PlayStateNotif()
     {
         EditorApplication.playModeStateChanged += playModeChanged;
+        
     }
 
     static void playModeChanged(PlayModeStateChange change)

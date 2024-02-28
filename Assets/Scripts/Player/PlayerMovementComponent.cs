@@ -5,6 +5,7 @@ public class PlayerMovementComponent : MonoBehaviour
 {
     //TODO: Greater Affordance for players intentions with walljumps, currently doesnt feel fully fair -> need to buffer when push from wall
     //TODO: Option to prevent downward motion during Coyote Time?
+    //TODO: Dash?
 
     #region Enums
     enum EWallState
@@ -49,8 +50,8 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] float _accelleration = 2f; //Time Aprx to get to full speed
     [SerializeField] float _decelleration = 4f; //Time Aprx to stop
 
-    [Header("--- Jumping ---")][Space(5)]
-    [SerializeField] float _jumpHeight = 6.0f;
+    [field: Header("--- Jumping ---")][field: Space(5)]
+    [field: SerializeField] public float JumpHeight { get; private set; } = 6.0f;
     public int MaxJumps = 1;
     [Tooltip("If MaxJumps > 1, will allow for extra jumps to be used as init jump if in air")]
     [SerializeField] bool _bRequireGroundedJump = true;
@@ -301,7 +302,7 @@ public class PlayerMovementComponent : MonoBehaviour
         _lastGroundedTimer = 0;
         RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
         RB.gravityScale = _defaultGravityScale;
-        float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
+        float jumpForce = Mathf.Sqrt(JumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
         RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         onPlayerJump?.Invoke();
     }

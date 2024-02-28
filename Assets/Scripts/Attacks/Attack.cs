@@ -92,7 +92,7 @@ public class Attack : MonoBehaviour
         }
 
         //Draw attack range
-        Gizmos.color = Color.yellow;
+        Gizmos.color = new Color(255, 0, 0, 0.2f);
         Gizmos.DrawWireSphere(transform.parent.position, GetAttackHitRadius());
     }
 
