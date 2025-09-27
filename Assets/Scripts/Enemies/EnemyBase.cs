@@ -54,6 +54,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] float _maxTargetDistance = 2f;
     [SerializeField] Vector2[] _targetPositions = { Vector2.right * 2, Vector2.left * 2 };
     [SerializeField] float _searchTime = 1f; //Time before giving up looking for target (most often player) when lost LOS
+    Vector3 _HeadOffsetPosition;
     Vector2[] _runtimeTargetPositions;
     int _defaultTargetIndex = 0;
     float _targetSearchTimer;
@@ -83,7 +84,9 @@ public class EnemyBase : MonoBehaviour
     {
         _seeker = GetComponent<Seeker>();
         _rigidbody = GetComponent<Rigidbody2D>();
+        _HeadOffsetPosition = new Vector3(0, GetComponent<Collider2D>().bounds.max.y / 2f, 0);
         
+
         UpdateDefaultPositions();
         if (!_attackObject && _bAttackEnabled) _attackObject = GetComponentInChildren<Attack>();
     }
@@ -138,8 +141,8 @@ public class EnemyBase : MonoBehaviour
                 LayerMask mask = ~0;
                 mask &= ~(1 << gameObject.layer);
 
-                RaycastHit2D hit = Physics2D.Linecast(transform.position, Player.Instance.transform.position, mask);
-                Debug.DrawLine(transform.position, hit.point, hit.transform.gameObject == Player.Instance.gameObject ? Color.green : Color.red);
+                RaycastHit2D hit = Physics2D.Linecast(transform.position + _HeadOffsetPosition, Player.Instance.transform.position, mask);
+                Debug.DrawLine(transform.position + _HeadOffsetPosition, hit.point, hit.transform.gameObject == Player.Instance.gameObject ? Color.green : Color.red);
                 if (hit.transform.gameObject == Player.Instance.gameObject)
                 {
                     return true;
