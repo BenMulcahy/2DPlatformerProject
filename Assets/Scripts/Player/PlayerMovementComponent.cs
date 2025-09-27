@@ -215,16 +215,16 @@ public class PlayerMovementComponent : MonoBehaviour
 
         if (GetComponent<HealthComponent>().bIsKnockedBack)
         {
-            targetSpeed = Mathf.Lerp(RB.velocityX, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
+            targetSpeed = Mathf.Lerp(RB.linearVelocityX, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
         }
         else if(_wallJumpDurationTimer < _wallJumpDuration)
         {
-            targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _wallJumpToRunLerp);
+            targetSpeed = Mathf.Lerp(RB.linearVelocity.x, targetSpeed, _wallJumpToRunLerp);
             //targetSpeed = 0;
         }
         else
         {
-            targetSpeed = Mathf.Lerp(RB.velocity.x, targetSpeed, _runningSpeedLerp);
+            targetSpeed = Mathf.Lerp(RB.linearVelocity.x, targetSpeed, _runningSpeedLerp);
         }
 
         //Calculate accel and deccel forces to apply
@@ -236,7 +236,7 @@ public class PlayerMovementComponent : MonoBehaviour
         if (IsOnFloor()) accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce : deccelForce;
         else accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? accelForce * _airAccellerationMod : deccelForce * _airDeccelleraionMod;
 
-        if (!IsOnFloor() && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Additional Air hang control
+        if (!IsOnFloor() && Mathf.Abs(RB.linearVelocity.y) < _jumpHangThreshold) //Additional Air hang control
         {
             accelRate *= _jumpHangAccelerationMod;
             targetSpeed *= _jumpHangMaxSpeedMod;
@@ -244,18 +244,18 @@ public class PlayerMovementComponent : MonoBehaviour
 
 
         //Momentum Conservation
-        if (_bConserveMomentum && Mathf.Abs(RB.velocity.x) > Mathf.Abs(targetSpeed) && Mathf.Sign(RB.velocity.x) == Mathf.Sign(targetSpeed) && Mathf.Abs(targetSpeed) > 0.01f && !IsOnFloor())
+        if (_bConserveMomentum && Mathf.Abs(RB.linearVelocity.x) > Mathf.Abs(targetSpeed) && Mathf.Sign(RB.linearVelocity.x) == Mathf.Sign(targetSpeed) && Mathf.Abs(targetSpeed) > 0.01f && !IsOnFloor())
         {
             accelRate = 0;
         }
 
 
-        float movementVal = (targetSpeed - RB.velocity.x) * accelRate;
+        float movementVal = (targetSpeed - RB.linearVelocity.x) * accelRate;
         RB.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
 
-        onPlayerMove?.Invoke(RB.velocity);
+        onPlayerMove?.Invoke(RB.linearVelocity);
 
-        if (RB.velocity.x < 0) bIsMovingRight = false; else if (RB.velocity.x > 0) bIsMovingRight = true;
+        if (RB.linearVelocity.x < 0) bIsMovingRight = false; else if (RB.linearVelocity.x > 0) bIsMovingRight = true;
     }
 
     public void SetSprinting(bool bSprinting)
@@ -300,7 +300,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         //Debug.Log("Jump!");
         _lastGroundedTimer = 0;
-        RB.velocity = new Vector2(RB.velocityX, 0); //Kill vert velocity before jump
+        RB.linearVelocity = new Vector2(RB.linearVelocityX, 0); //Kill vert velocity before jump
         RB.gravityScale = _defaultGravityScale;
         float jumpForce = Mathf.Sqrt(JumpHeight * (Physics2D.gravity.y * _defaultGravityScale) * -2) * RB.mass;
         RB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
@@ -310,19 +310,19 @@ public class PlayerMovementComponent : MonoBehaviour
     private void UpdateGravityScale()
     {
         //Set Grav Scale
-        if (RB.velocity.y >= 0) //Travelling up
+        if (RB.linearVelocity.y >= 0) //Travelling up
         {
             if(_wallState != EWallState.NULL) RB.gravityScale = _wallSlideUpGravityScale;
             else RB.gravityScale = _bShortHop ? _shortHopGravityScale : _defaultGravityScale;
         }
-        else if(JumpCounter > 0 && Mathf.Abs(RB.velocity.y) < _jumpHangThreshold) //Reaching Apex
+        else if(JumpCounter > 0 && Mathf.Abs(RB.linearVelocity.y) < _jumpHangThreshold) //Reaching Apex
         {
             RB.gravityScale = _defaultGravityScale * _jumpApexGravityModifier; //Hold jump at apex
         }
         else
         {
             RB.gravityScale = _fallingGravityScale; //Falling
-            RB.velocity = new Vector2(RB.velocity.x, Mathf.Max(RB.velocityY, -MaxFallSpeed)); //Clamp fall speed to max
+            RB.linearVelocity = new Vector2(RB.linearVelocity.x, Mathf.Max(RB.linearVelocityY, -MaxFallSpeed)); //Clamp fall speed to max
         }
     }
 
@@ -359,15 +359,15 @@ public class PlayerMovementComponent : MonoBehaviour
 
     void WallSlide()
     {
-        if (RB.velocity.y < 0)
+        if (RB.linearVelocity.y < 0)
         {
             RB.gravityScale = 0;
-            float speedDif = _wallSlideSpeed - RB.velocity.y;
+            float speedDif = _wallSlideSpeed - RB.linearVelocity.y;
             float movement = speedDif * _wallSlideDecelleration;
             movement = Mathf.Clamp(movement, -Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime), Mathf.Abs(speedDif) * (1 / Time.fixedDeltaTime));
             RB.AddForce(movement * Vector2.up);
 
-            onPlayerWallSlide?.Invoke(RB.velocity);
+            onPlayerWallSlide?.Invoke(RB.linearVelocity);
 
         }
     }
@@ -408,7 +408,7 @@ public class PlayerMovementComponent : MonoBehaviour
         Vector2 headPos = new Vector2(transform.position.x, playerBounds.max.y);
         Vector2 feetPos = new Vector2(transform.position.x, playerBounds.min.y);
 
-        bool castToRight = RB.velocityX > 0.0 ? bIsMovingRight : Player.Instance.bIsRightInput;
+        bool castToRight = RB.linearVelocityX > 0.0 ? bIsMovingRight : Player.Instance.bIsRightInput;
 
         //Cast from head and feet in current input direction
         _currentWallHit = Physics2D.Linecast(headPos, castToRight ? headPos + Vector2.right * 0.85f : headPos + Vector2.left * 0.85f, _wallMask);
@@ -432,9 +432,9 @@ public class PlayerMovementComponent : MonoBehaviour
 
         Vector2 force = _wallJumpForce;
         force.x *= (_wallState == EWallState.onRightWall) ? -1 : 1; //apply force in opposite direction of wall
-        if (Mathf.Sign(RB.velocity.x) != Mathf.Sign(force.x)) force.x -= RB.velocity.x; //Correct for any x velocity being imparted (e.g coyote time kicked in from leaving wall)
+        if (Mathf.Sign(RB.linearVelocity.x) != Mathf.Sign(force.x)) force.x -= RB.linearVelocity.x; //Correct for any x velocity being imparted (e.g coyote time kicked in from leaving wall)
 
-        RB.velocity = new(RB.velocity.x, 0); //kill all downward momentum
+        RB.linearVelocity = new(RB.linearVelocity.x, 0); //kill all downward momentum
 
         //Debug.Log("Apply: " + force + " Walljump force");
         RB.AddForce(force, ForceMode2D.Impulse);

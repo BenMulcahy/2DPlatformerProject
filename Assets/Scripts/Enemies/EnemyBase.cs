@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using UnityEditor;
 
 [RequireComponent(typeof(HealthComponent))]
-[RequireComponent(typeof(Seeker))]
 public class EnemyBase : MonoBehaviour
 {
     //TODO: Flying movement type
@@ -273,7 +272,7 @@ public class EnemyBase : MonoBehaviour
 
                 if (GetComponent<IHittable>().bIsKnockedBack)
                 {
-                    targetSpeed = Mathf.Lerp(_rigidbody.velocity.x, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
+                    targetSpeed = Mathf.Lerp(_rigidbody.linearVelocity.x, targetSpeed, GetComponent<HealthComponent>().KnockbackRecoveryLerp);
                 }
                 else
                 {
@@ -287,7 +286,7 @@ public class EnemyBase : MonoBehaviour
                 float accelRate;
                 accelRate = (Mathf.Abs((dir * _moveSpeed).magnitude) > 0.01f) ? accelForce : deccelForce;
 
-                float movementVal = (targetSpeed - _rigidbody.velocity.x) * accelRate;
+                float movementVal = (targetSpeed - _rigidbody.linearVelocity.x) * accelRate;
                 _rigidbody.AddForce(movementVal * Vector2.right, ForceMode2D.Force);
 
                 if (_bJumpEnabled && WantsToJump())
@@ -340,7 +339,7 @@ public class EnemyBase : MonoBehaviour
     {
         //Physics Jump
         _lastGroundedTimer = 0;
-        _rigidbody.velocity = new Vector2(_rigidbody.velocityX, 0); //Kill vert velocity before jump
+        _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocityX, 0); //Kill vert velocity before jump
         float jumpForce = Mathf.Sqrt(_jumpHeight * (Physics2D.gravity.y * _rigidbody.gravityScale) * -2) * _rigidbody.mass;
         _rigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -387,8 +386,8 @@ public class EnemyBase : MonoBehaviour
         }
         else
         {
-            if (_rigidbody.velocityX > 0) _bFacingRight = true;
-            else if (_rigidbody.velocityX < 0) _bFacingRight = false;
+            if (_rigidbody.linearVelocityX > 0) _bFacingRight = true;
+            else if (_rigidbody.linearVelocityX < 0) _bFacingRight = false;
         }
 
         if(_attackObject) _attackObject.SetAttackDir(_bFacingRight);
@@ -473,6 +472,8 @@ public class EnemyBase : MonoBehaviour
 
 
     #region Editor
+    #if UNITY_EDITOR
+
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.gray;
@@ -491,6 +492,7 @@ public class EnemyBase : MonoBehaviour
             }
         }
     }
+    #endif
 
     [Button] public void SetMaxTargetDistanceToAttackRange()
     {

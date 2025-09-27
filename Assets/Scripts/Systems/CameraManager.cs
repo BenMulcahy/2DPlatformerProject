@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using Cinemachine;
+using Unity.Cinemachine;
 
 
 public class CameraManager : MonoBehaviour
@@ -8,7 +8,7 @@ public class CameraManager : MonoBehaviour
     //TODO: If player within Y bounds of the screen space then dont track in the Y
 
     public static CameraManager Instance { get; private set; }
-    [field:SerializeField] public CinemachineVirtualCamera MainCamera { get; private set; }
+    [field:SerializeField] public CinemachineCamera MainCamera { get; private set; }
 
     [Header("--- Camera Shakes ---")]
     NoiseSettings _defaultCamShakeNoiseProfile;
@@ -29,7 +29,7 @@ public class CameraManager : MonoBehaviour
 
     void Start()
     {
-        if (!MainCamera) MainCamera = FindFirstObjectByType<CinemachineVirtualCamera>();
+        if (!MainCamera) MainCamera = FindFirstObjectByType<CinemachineCamera>();
         if (!_player) _player = Player.Instance;
         InvokeRepeating(nameof(UpdateOffset), 0f, 0.04f);
     }
@@ -49,14 +49,22 @@ public class CameraManager : MonoBehaviour
 
     public void SetCameraTarget(Transform target)
     {
-        MainCamera.m_LookAt = target;
-        MainCamera.m_Follow = target;
+        MainCamera.LookAt = target;
+        MainCamera.Follow = target;
+
+        //Depricated
+        //MainCamera.m_LookAt = target;
+        //MainCamera.m_Follow = target;
     }
 
     void UpdateOffset()
     {
         Vector2 targetOffset = new Vector2(_player.bIsRightInput ? CameraOffset.x : -CameraOffset.x, CameraOffset.y);
-        MainCamera.GetCinemachineComponent<CinemachineFramingTransposer>().m_TrackedObjectOffset = targetOffset;
+
+        MainCamera.GetCinemachineComponent(CinemachineCore.Stage.Body).GetComponent<CinemachinePositionComposer>().TargetOffset = targetOffset;
+        
+        ///Depricated
+        //MainCamera.CinemachinePositionComposer.m_TrackedObjectOffset = targetOffset;
 
     }
 
@@ -68,8 +76,16 @@ public class CameraManager : MonoBehaviour
         }
 
         if (!baseNoiseSetting) { baseNoiseSetting = _defaultCamShakeNoiseProfile; Debug.LogWarning("Default Cam Shake used! Is this intentional?"); } //Allows for cam shake to be called using default 6d noise
-        MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_NoiseProfile = baseNoiseSetting;
-        MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_AmplitudeGain = intensityMod;
+        
+        CinemachineBasicMultiChannelPerlin cineNoise = MainCamera.GetCinemachineComponent(CinemachineCore.Stage.Noise).GetComponent<CinemachineBasicMultiChannelPerlin>();
+
+        cineNoise.NoiseProfile = baseNoiseSetting;
+        cineNoise.AmplitudeGain = intensityMod;
+
+        ///Depricated
+        //MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_NoiseProfile = baseNoiseSetting;
+        //MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_AmplitudeGain = intensityMod;
+        
         cameraShakeTimer = time;
         bIsCameraShaking = true;
     }
@@ -78,6 +94,9 @@ public class CameraManager : MonoBehaviour
     {
         bIsCameraShaking = false;
         cameraShakeTimer = 0;
-        MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_NoiseProfile = null;
+        MainCamera.GetCinemachineComponent(CinemachineCore.Stage.Noise).GetComponent<CinemachineBasicMultiChannelPerlin>().NoiseProfile = null;
+        
+        ///Depricated
+        //MainCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>().m_NoiseProfile = null;
     }
 }

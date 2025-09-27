@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 
+
+#if UNITY_EDITOR
+
 [InitializeOnLoad]
 public static class PlayStateNotif
 {
@@ -19,3 +22,5 @@ public static class PlayStateNotif
         }
     }
 }
+
+#endif
