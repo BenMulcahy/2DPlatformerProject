@@ -16,6 +16,8 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public float Knockback { get; private set; } = 0f;
     [field: SerializeField] public float Cooldown { get; private set; } = 0.8f;
     [field: SerializeField] public float HitstopDuration { get; private set; } = 0f;
+    [field: SerializeField] public bool bEnableIFrames { get; private set; }
+    [field: SerializeField] public bool AttackInteruptable { get; private set; } = true;
     [field: SerializeField] public Sprite Sprite { get; private set; }
     [field: SerializeField] public AnimationClip AttackAnimation { get; private set; }
     [field: SerializeField] public Vector3[] HitSphereBounds { get; private set; } = { Vector3.forward };
@@ -23,6 +25,7 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public float CameraShakeIntensity { get; private set; } = 0f;
     [field: SerializeField] public float CameraShakeDuration { get; private set; }
     [field: SerializeField] public NoiseSettings CameraShakeNoiseSettings { get; private set; }
+
 
     public float Duration { get; private set; }
 

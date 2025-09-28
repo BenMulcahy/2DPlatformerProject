@@ -52,6 +52,9 @@ SpriteRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -73,6 +76,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -202,7 +206,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bAttackEnabled: 1
-  _attackObject: {fileID: 8503630032563234689}
   _jumpInputBuffer: 0.33
   _atkInputBuffer: 0.01
 --- !u!114 &6136895511751352337
@@ -219,6 +222,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bCanTakeDamage: 1
   _maxHealth: 100
+  <bCanBeKnockedBack>k__BackingField: 1
+  <KnockbackRecoveryLerp>k__BackingField: 0.1
 --- !u!114 &9213879135022504012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237,7 +242,7 @@ MonoBehaviour:
   _runningSpeedLerp: 1
   _accelleration: 2
   _decelleration: 5
-  _jumpHeight: 6
+  <JumpHeight>k__BackingField: 6
   MaxJumps: 1
   _bRequireGroundedJump: 1
   _airAccellerationMod: 1.2
@@ -271,7 +276,7 @@ MonoBehaviour:
     m_Bits: 8
 --- !u!50 &2294392921548827685
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -282,8 +287,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0
+  m_LinearDamping: 0
+  m_AngularDamping: 0
   m_GravityScale: 3
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -438,14 +443,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &8503630032563234689 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1695276982040951408, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
-  m_PrefabInstance: {fileID: 7026779917579984369}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7375735287423112086}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5762a6fa98c034b418e9ad476d8d6927, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

@@ -12,7 +12,7 @@ public class PlayerFX : MonoBehaviour
     [Header("--- Code based Animations ---")]
     [SerializeField] bool bUseCodeBasedAnims = true;
     [Header("Squash")]
-    [SerializeField] Vector2 _squashScalePivotPoint = new Vector2(0,-0.95f);
+    [SerializeField] Vector2 _squashScalePivotPoint = new Vector2(0, -0.95f);
     [SerializeField] Vector2 _maxSquash = new Vector2(1.4f, 0.55f);
     [SerializeField] float _squashDuration = 0.05f;
 
@@ -22,11 +22,11 @@ public class PlayerFX : MonoBehaviour
     [SerializeField] NoiseSettings _playerLandShake;
     [SerializeField] float _landingCamShakeDuration = 0.2f;
     [SerializeField] float _landingCamShakeIntensityMod = 1f;
-    
+
     [Header("--- Controller Rumble ---")]
     [SerializeField] float _damageRumbleDuration = 0.3f;
     [SerializeField] float _damageRumbleIntensity = 3f;
-    
+
 
     #region Setup
     private void OnEnable()
@@ -57,8 +57,10 @@ public class PlayerFX : MonoBehaviour
     private void PlayerLandFX()
     {
         if (bUseCodeBasedAnims) StartCoroutine(Squash());
-        CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod,_landingCamShakeDuration,_playerLandShake);
+        CameraManager.Instance.DoCameraShake(_landingCamShakeIntensityMod, _landingCamShakeDuration, _playerLandShake);
         //InputManager.Instance.ControllerRumble(_landingRumbleIntensity, _landingRumbleDuration);
+
+        //TODO Landing Dust Cloud
     }
 
     private void PlayerWallJumpFX()
@@ -80,6 +82,8 @@ public class PlayerFX : MonoBehaviour
     {
         //Debug.Log("Player Jump FX");
 
+        //TODO Player Jump Dust
+
         if (bUseCodeBasedAnims)
         {
             StopCoroutine(Squash());
@@ -91,7 +95,7 @@ public class PlayerFX : MonoBehaviour
     private void PlayerTakeDamageFX()
     {
         Debug.Log("Do Rumble");
-        InputManager.Instance.ControllerRumble(_damageRumbleIntensity,_damageRumbleDuration);
+        InputManager.Instance.ControllerRumble(_damageRumbleIntensity, _damageRumbleDuration);
     }
 
     private void PlayerMovementFX(Vector2 playerVelocity)
@@ -112,17 +116,17 @@ public class PlayerFX : MonoBehaviour
 
         bool bSquashing = true;
 
-        while(t < _squashDuration) //Squash down
+        while (t < _squashDuration) //Squash down
         {
             if (bSquashing)
-            { 
-                transform.localScale = Vector2.Lerp(Vector2.one, _maxSquash, (t / _squashDuration)/2);
-                transform.localPosition = Vector2.Lerp(localPos, finalPos, (t / _squashDuration)/2);
+            {
+                transform.localScale = Vector2.Lerp(Vector2.one, _maxSquash, (t / _squashDuration) / 2);
+                transform.localPosition = Vector2.Lerp(localPos, finalPos, (t / _squashDuration) / 2);
             }
             else
             {
-                transform.localScale = Vector2.Lerp(_maxSquash, Vector2.one, (t / _squashDuration)/2);
-                transform.localPosition = Vector2.Lerp(finalPos, localPos, (t / _squashDuration)/2);
+                transform.localScale = Vector2.Lerp(_maxSquash, Vector2.one, (t / _squashDuration) / 2);
+                transform.localPosition = Vector2.Lerp(finalPos, localPos, (t / _squashDuration) / 2);
             }
 
             t += Time.deltaTime;

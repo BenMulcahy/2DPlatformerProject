@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 0
   <Damage>k__BackingField: 10
-  <Knockback>k__BackingField: 40
-  <Cooldown>k__BackingField: 0.2
+  <Knockback>k__BackingField: 15
+  <Cooldown>k__BackingField: 0.1
   <HitstopDuration>k__BackingField: 0.05
   <Sprite>k__BackingField: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
   <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
@@ -27,3 +27,4 @@ MonoBehaviour:
   <CameraShakeIntensity>k__BackingField: 0
   <CameraShakeDuration>k__BackingField: 0
   <CameraShakeNoiseSettings>k__BackingField: {fileID: 11400000, guid: be4a87108f55a4ca6b70c39b383c6b12, type: 2}
+  IFrameCount: 50

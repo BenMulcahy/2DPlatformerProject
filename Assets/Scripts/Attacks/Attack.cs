@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using Unity.VisualScripting;
+using NUnit.Framework.Constraints;
+using System.Resources;
 
 public class Attack : MonoBehaviour
 {
     //TODO: Ranged attacks 
-    //TODO: Hit interrupt
 
     #region Events/Delegates
     /// <summary>
@@ -69,6 +70,11 @@ public class Attack : MonoBehaviour
     {
         SetData();
         _atkCDTimer = 0;
+
+        if (GetComponentInParent<HealthComponent>())
+        {
+            GetComponentInParent<HealthComponent>().onTakeDamage += ResetAtkCD;
+        }
     }
 
     void SetData()
@@ -98,7 +104,7 @@ public class Attack : MonoBehaviour
 
     private void Update()
     {
-        if(!_bIsAttacking) _atkCDTimer -= Time.deltaTime;
+        if (!_bIsAttacking) _atkCDTimer -= Time.deltaTime;
     }
 
 
@@ -112,7 +118,6 @@ public class Attack : MonoBehaviour
         //Debug.Log("Attack!");
         
     }
-    
 
     public virtual IEnumerator Attacking()
     {
@@ -121,13 +126,16 @@ public class Attack : MonoBehaviour
 
         _attackState = EAttackState.startup;
         _animator.SetTrigger("IsAttacking");
+
+        // StartCoroutine(SetIFrames());
+
         while (_attackState == EAttackState.startup)
         {
             //Start up logic
             yield return wait;
         }
 
-        while(_attackState == EAttackState.active)
+        while (_attackState == EAttackState.active)
         {
             if (AttackHitCheck())
             {
@@ -135,7 +143,7 @@ public class Attack : MonoBehaviour
                 for (int i = 0; i < _hits.Count; i++)
                 {
                     /* -------- DEAL DAMAGE ------- */
-                    if(_hits[i] != null ) //check that hit is valid (enemy hasnt died)
+                    if (_hits[i] != null) //check that hit is valid (enemy hasnt died)
                     {
                         IHittable hittable = _hits[i].gameObject.GetComponent<IHittable>();
                         if (hittable != null && !hittable.bHasBeenHitThisInstance)
@@ -148,12 +156,13 @@ public class Attack : MonoBehaviour
             yield return wait;
         }
 
-        while(_attackState == EAttackState.ending)
+        while (_attackState == EAttackState.ending)
         {
-            //End lag logic
+            //TODO End lag logic
             yield return wait;
         }
 
+        // StopCoroutine(SetIFrames());
         _bIsAttacking = false;
     }
 
@@ -245,6 +254,22 @@ public class Attack : MonoBehaviour
         //Debug.Log("Attack Set to " + _attackState);
     }
 
+    public void SetIFrameBool(int NewValue)
+    {
+        switch (NewValue)
+        {
+            case 0:
+                InvincibleFrames(false);
+                break;
+            case 1:
+                InvincibleFrames(true);
+                break;
+            default:
+                Debug.LogError("Incorrect I frame setup!");
+                break;
+        }
+    }
+
     /// <summary>
     /// Gets the furthest point from the entity to hit box areas
     /// </summary>
@@ -267,16 +292,24 @@ public class Attack : MonoBehaviour
             if (Vector2.Distance(entityPos, allHitBoxesFurthestPoint) < Vector2.Distance(entityPos, hitBoxFurthestPoint))
             {
                 allHitBoxesFurthestPoint = hitBoxFurthestPoint;
-            } 
+            }
         }
-     
+
         Debug.DrawLine(entityPos, allHitBoxesFurthestPoint, Color.cyan);
         return Vector2.Distance(entityPos, allHitBoxesFurthestPoint);
     }
 
-    public void InvincibleFrames(bool enabled)
+/// <summary>
+/// Set within animation triggers - prevents player taking damage during 'IFrame regions'
+/// </summary>
+/// <param name="enabled"></param>
+    void InvincibleFrames(bool enabled)
     {
-        GetComponentInParent<HealthComponent>().bCanTakeDamage = !enabled;
+        if (Data.bEnableIFrames)
+        {
+            Debug.Log("Iframes: " + enabled);
+            GetComponentInParent<HealthComponent>().bCanTakeDamage = !enabled;
+        }
     }
 
 

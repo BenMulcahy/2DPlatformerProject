@@ -106,7 +106,16 @@ public class EnemyBase : MonoBehaviour
 
     private void Update()
     {
-        if (LookForPlayer())
+
+        UpdateLookDir();
+        CheckAttack();
+
+        UpdateTimers();
+    }
+
+    private void FixedUpdate()
+    {
+                if (LookForPlayer())
         {
             _targetSearchTimer = _bRequireLOS ? _searchTime : 0; //Dont use search time if LOS not required
             SetPathTarget(Player.Instance.transform);
@@ -118,12 +127,8 @@ public class EnemyBase : MonoBehaviour
 
         UpdateGroundStatus();
         DoPathfinding();
-        UpdateLookDir();
-        CheckAttack();
-
-        UpdateTimers();
     }
-    
+
     void UpdateTimers()
     {
         _targetSearchTimer -= Time.deltaTime;
@@ -316,7 +321,7 @@ public class EnemyBase : MonoBehaviour
             //if walking off edge && if target pos == same height or higher than current
             if (!RaycastToGround(!_bFacingRight) && _targetPos.y >= transform.position.y)
             {
-                Debug.Log("Auto-jump from edge detect");
+                //Debug.Log("Auto-jump from edge detect");
                 return true;
             }
 
@@ -328,7 +333,7 @@ public class EnemyBase : MonoBehaviour
                 {
                     if((_path.vectorPath[_currentWaypoint + i].y - transform.position.y) > (LookForPlayer() ? Player.Instance.GetComponent<PlayerMovementComponent>().JumpHeight + 0.5f : _jumpThreshold))
                     {
-                        Debug.Log("Auto-jump from waypoint Y");
+                        //Debug.Log("Auto-jump from waypoint Y");
                         return true;
                     }
                 }
@@ -468,7 +473,7 @@ public class EnemyBase : MonoBehaviour
 
     private void OnLand()
     {
-        Debug.Log(name + " Landed");
+        //Debug.Log(name + " Landed");
         _lastGroundedTimer = 0f;
     }
     #endregion
