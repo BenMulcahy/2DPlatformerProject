@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6c3af4855dcd3947b08e52004ae8697, type: 3}
+  m_Name: BasePlayerRangedAttac
+  m_EditorClassIdentifier: Assembly-CSharp::AttackData
+  <AttackType>k__BackingField: 1
+  <Damage>k__BackingField: 5
+  <Knockback>k__BackingField: 3
+  <Cooldown>k__BackingField: 0.1
+  <HitstopDuration>k__BackingField: 0
+  <bEnableIFrames>k__BackingField: 0
+  <AttackInteruptable>k__BackingField: 1
+  <Sprite>k__BackingField: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  <AttackAnimation>k__BackingField: {fileID: 7400000, guid: 40674c590c33f448c88517b2584604ec, type: 2}
+  <HitSphereBounds>k__BackingField:
+  - {x: 0, y: 0, z: 1}
+  <AttackLayer>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  <CameraShakeIntensity>k__BackingField: 0
+  <CameraShakeDuration>k__BackingField: 0
+  <CameraShakeNoiseSettings>k__BackingField: {fileID: 0}
+  <ProjectileSpeed>k__BackingField: 8
+  <ProjectileSprite>k__BackingField: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  <ProjectilePrefab>k__BackingField: {fileID: 3302080100142084297, guid: e4f5519a2995d4aa08636bd38d8353b9, type: 3}
+  <ProjectileRange>k__BackingField: 33

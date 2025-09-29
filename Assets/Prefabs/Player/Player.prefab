@@ -350,6 +350,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BasePlayerAttack
       objectReference: {fileID: 0}
+    - target: {fileID: 567386694938988135, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1695276982040951408, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
       propertyPath: _bFlipSpriteWithDir
       value: 1
@@ -402,14 +406,31 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -0.072876506
       objectReference: {fileID: 0}
+    - target: {fileID: 8824150797711189563, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      propertyPath: m_Size.x
+      value: 1.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 8824150797711189563, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      propertyPath: m_Size.y
+      value: 1.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 8824150797711189563, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 2720535173406242035, guid: e8de7d3be561740f89425d98b69e73f3, type: 3}
     m_RemovedComponents:
     - {fileID: 4581044132228733621, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+    - {fileID: 921810067470620004, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+    - {fileID: 6980042726392968909, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 567386694938988135, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6656892136261806798}
+    - targetCorrespondingSourceObject: {fileID: 567386694938988135, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5824880256347312408}
   m_SourcePrefab: {fileID: 100100000, guid: 118c511d29ee14570bf9511fcd8b0c5a, type: 3}
 --- !u!4 &2998837629207156007 stripped
 Transform:
@@ -443,3 +464,17 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5824880256347312408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7375735287423112086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db0390959c4df4369a79134ca38b3c6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttack
+  <Data>k__BackingField: {fileID: 11400000, guid: 5f2570f6fe1b14c309a896e14163d909, type: 2}
+  _bFlipSpriteWithDir: 1

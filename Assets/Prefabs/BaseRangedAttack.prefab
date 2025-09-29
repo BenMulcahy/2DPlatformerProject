@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5195502453822556374}
+  - component: {fileID: 7696253665145674155}
   - component: {fileID: 135666504642733312}
-  - component: {fileID: 6980042726392968909}
   m_Layer: 0
-  m_Name: BaseAttack
+  m_Name: BaseRangedAttack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,6 +34,20 @@ Transform:
   - {fileID: 8570981321442913702}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7696253665145674155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 567386694938988135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edaa210ab26f94ed786861a7aaf35c73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangedAttack
+  <Data>k__BackingField: {fileID: 11400000, guid: 5bae0c1468f9d4987975e51dc77aa287, type: 2}
+  _bFlipSpriteWithDir: 0
 --- !u!95 &135666504642733312
 Animator:
   serializedVersion: 7
@@ -56,20 +70,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &6980042726392968909
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 567386694938988135}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edaa210ab26f94ed786861a7aaf35c73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RangedAttack
-  <Data>k__BackingField: {fileID: 11400000, guid: 7df787cbcf7e2468aba2e903ea442668, type: 2}
-  _bFlipSpriteWithDir: 0
 --- !u!1 &5113070902042283960
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
+using System;
 using Unity.Cinemachine;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Collections;
+using UnityEditor;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Attack Data", menuName = "ScritableObjects/New Attack")]
@@ -8,7 +9,7 @@ public class AttackData : ScriptableObject
 {
     public enum EAttackType
     {
-        melee,ranged
+        melee, ranged
     }
 
     [field: SerializeField] public EAttackType AttackType { get; private set; } = EAttackType.melee;
@@ -26,12 +27,19 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public float CameraShakeDuration { get; private set; }
     [field: SerializeField] public NoiseSettings CameraShakeNoiseSettings { get; private set; }
 
+    [Header(" --- PROJECTILE ---")]
+    [field: SerializeField] public float ProjectileSpeed { get; private set; }
+    [field:SerializeField] public Sprite ProjectileSprite { get; private set; }
+    [field:SerializeField] public GameObject ProjectilePrefab { get; private set; }
+    [field:SerializeField] public float ProjectileRange { get; private set; }
+
+    //[field:SerializeField] public float ProjectileGravityScale { get; private set; }
 
     public float Duration { get; private set; }
 
     private void OnEnable()
     {
-        if(AttackAnimation)
+        if (AttackAnimation)
         {
             Duration = AttackAnimation.length;
         }

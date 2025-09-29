@@ -2,7 +2,6 @@ using UnityEngine;
 using EasyButtons;
 using Pathfinding;
 using System;
-using Unity.VisualScripting;
 using UnityEngine.UI;
 using UnityEditor;
 
@@ -20,6 +19,7 @@ public class EnemyBase : MonoBehaviour
     #region Vars
 
     bool _bFacingRight;
+    public bool bIsChasingPlayer { get; private set;}
 
     enum EMovementType
     {
@@ -52,6 +52,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] float _repathRate = 0.3f; //Time between each pathing calculation
     [SerializeField] float _nextWaypointDist = 3f;
     [SerializeField] float _maxTargetDistance = 2f;
+    [SerializeField] float _maxAttackingDistance = 2f;
     [SerializeField] Vector2[] _targetPositions = { Vector2.right * 2, Vector2.left * 2 };
     [SerializeField] float _searchTime = 1f; //Time before giving up looking for target (most often player) when lost LOS
     Vector3 _HeadOffsetPosition;
@@ -118,10 +119,12 @@ public class EnemyBase : MonoBehaviour
                 if (LookForPlayer())
         {
             _targetSearchTimer = _bRequireLOS ? _searchTime : 0; //Dont use search time if LOS not required
+            bIsChasingPlayer = true; 
             SetPathTarget(Player.Instance.transform);
         }
         else if(_targetSearchTimer <= 0)
         {
+            bIsChasingPlayer = false;
             SetPathTarget(null);
         }
 
@@ -144,7 +147,7 @@ public class EnemyBase : MonoBehaviour
             {
                 //Create layer mask to exclude current object layer (should be enemy)
                 LayerMask mask = ~0;
-                mask &= ~(1 << gameObject.layer);
+                mask &= ~(1 << gameObject.layer | 1 << 8);
 
                 RaycastHit2D hit = Physics2D.Linecast(transform.position + _HeadOffsetPosition, Player.Instance.transform.position, mask);
                 Debug.DrawLine(transform.position + _HeadOffsetPosition, hit.point, hit.transform.gameObject == Player.Instance.gameObject ? Color.green : Color.red);
@@ -172,7 +175,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         onEnemyDeath?.Invoke(this);
-        _attackObject.ResetHits(); //ensures that any knocback etc applied to player is removed
+        if(_attackObject) _attackObject.ResetHits(); //ensures that any knocback etc applied to player is removed
         Destroy(gameObject);
     }
     #endregion
@@ -239,7 +242,13 @@ public class EnemyBase : MonoBehaviour
     {
         if (_path == null) return false;
         SetMovementState(EMoveState.standing);
-        return _currentDistToTarget <= _maxTargetDistance;
+
+
+        if (bIsChasingPlayer)
+        {
+            return _currentDistToTarget <= _maxAttackingDistance;
+        }
+        else return _currentDistToTarget <= _maxTargetDistance;
     }
 
 
@@ -406,6 +415,7 @@ public class EnemyBase : MonoBehaviour
     #region Attacking
     bool InRangeOfTarget()
     {
+        if (!_attackObject) return false;
         if (_target && _target.gameObject != this.gameObject && _target.GetComponent<IHittable>() != null)
         {
             return _currentDistToTarget <= _attackObject.GetAttackHitRadius();
@@ -502,10 +512,10 @@ public class EnemyBase : MonoBehaviour
     }
     #endif
 
-    [Button] public void SetMaxTargetDistanceToAttackRange()
+    [Button] public void SetMaxAttackDistanceToAttackRange()
     {
         if (!_attackObject) { Debug.LogError("No Attack Object"); return; }
-        _maxTargetDistance = _attackObject.GetAttackHitRadius();
+        _maxAttackingDistance = _attackObject.GetAttackHitRadius();
     }
 
     [Button] public void UpdateDefaultPositions()
