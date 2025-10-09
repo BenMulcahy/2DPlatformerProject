@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2157709687615083902}
   - component: {fileID: 6469188292865011307}
   - component: {fileID: 7109992840452870200}
+  - component: {fileID: 3124764888120726420}
   m_Layer: 8
   m_Name: ProjectilePrefabBase
   m_TagString: Untagged
@@ -82,6 +83,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 794d136a5a53e49318f7a23db35c7b64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileBase
+--- !u!50 &3124764888120726420
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3302080100142084297}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
 --- !u!1 &7121380897487328348
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ public class InputManager : MonoBehaviour
 {
     public static InputManager Instance;
     public string InputType { get; private set; }
+    bool _bIsRumble;
 
     [Header("--- Rumble ---")]
     [SerializeField] float _rumbleLowFreq = 0.8f;
@@ -60,9 +61,19 @@ public class InputManager : MonoBehaviour
         #endif
         if (InputType != "Gamepad") return;
 
-        //TODO: Enque or overwrite ongoing rumble if new rumble?
-        Gamepad.current.SetMotorSpeeds(_rumbleLowFreq * intensity, _rumbleHighFreq * intensity);
-        Invoke(nameof(StopRumble), duration);
+        //REVIEW - Check Works
+        if (_bIsRumble)
+        {
+            Invoke(nameof(StopRumble), 0);
+            _bIsRumble = false;
+            return;
+        }
+        else
+        {
+            Gamepad.current.SetMotorSpeeds(_rumbleLowFreq * intensity, _rumbleHighFreq * intensity);
+            Invoke(nameof(StopRumble), duration);
+            _bIsRumble = true;
+        }
     }
 
     public void StopRumble()

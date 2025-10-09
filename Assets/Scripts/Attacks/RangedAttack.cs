@@ -14,11 +14,11 @@ public class RangedAttack : Attack
 
         if (GetComponentInParent<EnemyBase>())
         {
-            projectile.InitProjectile(Data.Damage, Data.ProjectileSpeed, Data.Knockback, true, Player.Instance.transform.position);
+            projectile.InitProjectile(Data.Damage, Data.ProjectileForce, Data.ProjectileRange, Data.Knockback, Data.ProjectileGravityScale, true, Player.Instance.transform.position);
         }
         else if (GetComponentInParent<Player>())
         {
-            projectile.InitProjectile(Data.Damage, Data.ProjectileSpeed, Data.Knockback, false, Player.Instance.bFacingRight ? transform.position + new Vector3(1, 0, 0) * Data.ProjectileRange : transform.position + new Vector3(-1, 0, 0) * Data.ProjectileRange);
+            projectile.InitProjectile(Data.Damage, Data.ProjectileForce, Data.ProjectileRange, Data.Knockback, Data.ProjectileGravityScale, false, Player.Instance.bFacingRight ? transform.position + new Vector3(1, 0, 0) * Data.ProjectileRange : transform.position + new Vector3(-1, 0, 0) * Data.ProjectileRange);
         }
         else Debug.Log("Huh");
 

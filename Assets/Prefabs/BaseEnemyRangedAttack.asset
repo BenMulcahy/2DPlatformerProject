@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AttackData
   <AttackType>k__BackingField: 1
   <Damage>k__BackingField: 5
-  <Knockback>k__BackingField: 0
+  <Knockback>k__BackingField: 10
   <Cooldown>k__BackingField: 1
   <HitstopDuration>k__BackingField: 0
   <bEnableIFrames>k__BackingField: 0
@@ -29,7 +29,8 @@ MonoBehaviour:
   <CameraShakeIntensity>k__BackingField: 0
   <CameraShakeDuration>k__BackingField: 0
   <CameraShakeNoiseSettings>k__BackingField: {fileID: 0}
-  <ProjectileSpeed>k__BackingField: 8
+  <ProjectileForce>k__BackingField: 10
   <ProjectileSprite>k__BackingField: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
   <ProjectilePrefab>k__BackingField: {fileID: 3302080100142084297, guid: e4f5519a2995d4aa08636bd38d8353b9, type: 3}
-  <ProjectileRange>k__BackingField: 20
+  <ProjectileRange>k__BackingField: 30
+  <ProjectileGravityScale>k__BackingField: 0

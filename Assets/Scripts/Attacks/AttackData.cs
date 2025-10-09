@@ -27,13 +27,12 @@ public class AttackData : ScriptableObject
     [field: SerializeField] public float CameraShakeDuration { get; private set; }
     [field: SerializeField] public NoiseSettings CameraShakeNoiseSettings { get; private set; }
 
-    [Header(" --- PROJECTILE ---")]
-    [field: SerializeField] public float ProjectileSpeed { get; private set; }
+    [field:Header(" --- PROJECTILE ---")]
+    [field: SerializeField] public float ProjectileForce { get; private set; }
     [field:SerializeField] public Sprite ProjectileSprite { get; private set; }
     [field:SerializeField] public GameObject ProjectilePrefab { get; private set; }
     [field:SerializeField] public float ProjectileRange { get; private set; }
-
-    //[field:SerializeField] public float ProjectileGravityScale { get; private set; }
+    [field: SerializeField] public float ProjectileGravityScale { get; private set; } = 0f;
 
     public float Duration { get; private set; }
 

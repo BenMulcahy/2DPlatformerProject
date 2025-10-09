@@ -3,27 +3,42 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
+//TODO: Add min/max aim angles for AI
+//TODO: Piercing shots
+
 [RequireComponent(typeof(CircleCollider2D))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class ProjectileBase : MonoBehaviour
 {
     bool _isEnemyProjectile;
-    float _speed;
+    float _force;
+    float _range;
     Vector2 _targetPos;
+    Vector2 _startPos;
     float _damage;
     float _knockback;
+    Rigidbody2D _rb;
 
     bool _isInitialized = false;
 
     /// <summary>
     /// Call whenever spawning projectile base
     /// </summary>
-    public void InitProjectile(float Damage, float speed, float knockback, bool isEnemyProjectile, Vector2 target)
+    public void InitProjectile(float Damage, float force, float range, float knockback, float ProjectileGravityScale, bool isEnemyProjectile, Vector2 target)
     {
-        _speed = speed;
+        _force = force;
         _isEnemyProjectile = isEnemyProjectile;
         _targetPos = target;
         _damage = Damage;
+        _range = range;
         _knockback = knockback;
+        _startPos = transform.position;
+        _rb = GetComponent<Rigidbody2D>();
+        _rb.freezeRotation = true;
+        _rb.gravityScale = ProjectileGravityScale;
+        _rb.linearDamping = 0f;
+
+        Debug.Log("Projectile Init with: " + "Damage: " + _damage + " Knockback: " + _knockback + " Range: " + _range);
         _isInitialized = true;
     }
 
@@ -63,6 +78,11 @@ public class ProjectileBase : MonoBehaviour
                     return true;
                 }
             }
+            else
+            {
+                DoDestroy();
+                return true;
+            }
         }
         return false;
     }
@@ -72,63 +92,46 @@ public class ProjectileBase : MonoBehaviour
         if (hit)
         {
             hit.GetComponent<IHittable>().TakeDamage(_damage);
-            //Knockback(hit); //TODO Implement
+            Knockback(hit);
             hit.GetComponent<IHittable>().bHasBeenHitThisInstance = false;
+            hit.GetComponent<IHittable>().bIsKnockedBack = false;
             Destroy(this.gameObject);
         }
     }
 
-     protected virtual void Knockback(GameObject hit)
+    protected virtual void Knockback(GameObject hit)
     {
         if (_knockback <= 0) return;
         //Debug.Log("Knockback");
         Rigidbody2D rb = hit.GetComponent<Rigidbody2D>();
-        // if (rb)
-        // {
-        //     hit.GetComponent<IHittable>().bIsKnockedBack = true;
+        if (rb)
+        {
+            hit.GetComponent<IHittable>().bIsKnockedBack = true;
 
-        //     //Get direction from attacker to hit
-        //     Vector2 dir = (transform.parent.position - hit.transform.position).normalized;
+            //Get direction from attacker to hit
+            Vector2 dir = (transform.position - hit.transform.position).normalized;
 
-        //     //Set knockback force to -dir * knockback
-        //     Vector2 knockbackVector = -dir * _knockback;
+            //Set knockback force to -dir * knockback
+            Vector2 knockbackVector = -dir * _knockback;
 
-        //     //Apply force
-        //     rb.AddForce(knockbackVector, ForceMode2D.Impulse);
-        // }
+            //Apply force
+            rb.AddForce(knockbackVector, ForceMode2D.Impulse);
+        }
     }
 
     protected virtual void UpdatePosition()
     {
-        //TODO: Implement as an override
-        // Vector2 trajectoryRange = _targetPos - _trajStartPoint;
-        // float nextPosX = transform.position.x + _speed * Time.deltaTime;
-        // float nextPosXNormalized = (nextPosX - _trajStartPoint.x) / trajectoryRange.x;
-        // float nextPosYNormalized = _trajectory.Evaluate(nextPosXNormalized);
-        // float nextPosY = _trajStartPoint.y + nextPosYNormalized * _curveMaxHeight;
+        Vector2 dir = (_targetPos - _startPos) / Vector2.Distance(_targetPos, _startPos); //Normalized direction to target
+        _rb.linearVelocity = dir * _force; //REVIEW - Is this best practice? Projectiles will accell over time (COULD use same logic as player movement for greater variability)
 
-        // Vector2 newPos = new Vector2(nextPosX, nextPosY);
-        // transform.position = newPos;
-
-        Vector3 moveDirNormalized = (_targetPos - (Vector2)transform.position).normalized;
-        transform.position += moveDirNormalized * _speed * Time.deltaTime;
-
-        if (Vector3.Distance(transform.position, _targetPos) < 0.1f)
+        if (Vector3.Distance(_startPos, transform.position) >= _range)
         {
-            //Reached Target
-            if (_isEnemyProjectile) EnemyProjectileReachedTarget();
-            else PlayerProjectileReachedTarget();
+            DoDestroy();
         }
     }
 
-    protected virtual void EnemyProjectileReachedTarget()
+    void DoDestroy()
     {
-        //TODO Review, can outrun projectiles lol
-        Destroy(this.gameObject);
-    }
-
-    protected virtual void PlayerProjectileReachedTarget()
-    {
-        Destroy(this.gameObject);
+        Destroy(gameObject);
     }
 }
